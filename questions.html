@@ -1,119 +1,138 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Random Arithmetic Table</title>
-	<style>
+    <title>Random Arithmetic Table</title>
+    <style>
+        #printOnly, #date { display: none; }
+        @media print {
+            #printOnly, #date { display: block; }
+            h1, form { display: none; }
+        }
+        body { padding: 0.75cm; font-family: sans-serif; font-size: 16pt; }
+        table { border-collapse: collapse; width: 100%; }
+        td { padding: 0.5cm; text-align: center; font-size: 14pt; }
+        h1, form { text-align: center; }
+        form { display: flex; flex-direction: column; align-items: center; }
+        .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 50%;
+            margin-bottom: 10px;
+        }
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        button {
+            font-size: 14pt;
+            padding: 0.4cm;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async 
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-#printOnly {
-   display : none;
-}
-
-#date {
-   display : none;
-}
-
-@media print {
-    #printOnly {
-    position: fixed;
-    top: 1cm;
-    right: 2cm;
-    left: 2cm;
-       font-size: 12pt;
-       display : block;
-    }
-    #date {
-    position: fixed;
-    top: 1cm;
-    right: 2cm;
-       font-size: 12pt;
-       display : block;
-    }
-}
-		body {
-			padding: 0.75cm;
-			font-family: sans-serif;
-			font-size: 16pt;
-		}
-
-		table {
-			border-collapse: collapse;
-			width: 100%;
-		}
-
-		td {
-			border: none;
-			padding: 0.5cm;
-			text-align: center;
-			position: relative;
-			font-size: 14pt;
-		}
-
-		td u {
-			border-bottom: 1px solid black;
-			padding-bottom: 0.1cm;
-			display: inline-block;
-			width: 2cm;
-			margin-top: 0.2cm;
-			font-size: 16pt;
-		}
-
-		h1, form {
-			text-align: center;
-		}
-
-		form {
-			margin-top: 0cm;
-			margin-bottom: 0.50cm;
-			display: flex;
-			flex-wrap: wrap;
-			justify-content: center;
-			align-items: center;
-		}
-
-		form label, form input[type="checkbox"] {
-			display: inline-block;
-			margin-right: 1em;
-		}
-
-		button {
-			font-size: 14pt;
-			padding: 0.4cm;
-			border-radius: 5px;
-			cursor: pointer;
-		}
-
-		.container {
-			max-width: 800px;
-			margin: 0 auto;
-		}
-
-		@media print {
-			h1, form {
-				display: none;
-			}
-		}
-	</style>
+        
+    
 </head>
-<body>
-	<div class="container">
-		<div id="printOnly">Name: ____________</div>
-		<div id="date"></div>
 
-		<h1>Random Arithmetic Table</h1>
-		<form id="options">
-			<label for="multiplication"><input type="checkbox" id="multiplication" name="operation" value="multiplication" checked>Multiplication</label>
-			<label for="division"><input type="checkbox" id="division" name="operation" value="division" checked>Division</label>
-			<label for="addition"><input type="checkbox" id="addition" name="operation" value="addition" checked>Addition</label>
-			<label for="subtraction"><input type="checkbox" id="subtraction" name="operation" value="subtraction" checked>Subtraction</label>
-			<br>
-			<button type="button" onclick="generateArithmeticTable();">Generate</button>
-			<button type="button" onclick="window.print();">Print</button>
-		</form>
-		<table id="arithmetic-table">
-			<tbody>
-			</tbody>
-		</table>
-	</div>
-	<script src="script.js"></script>
+<script>
+    window.MathJax = {
+        loader: {load: ['[tex]/enclose']}, // ✅ Correct way to load 'enclose'
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            packages: {'[+]': ['enclose']}
+        },
+        svg: { fontCache: 'global' }
+    };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+
+<body>
+    <div class="container">
+        <div id="printOnly">Name: ____________</div>
+        <div id="date"></div>
+
+        <h1>Random Arithmetic Table</h1>
+        <form id="options">
+            <div class="form-group">
+                <label>Operation:
+                    <select id="operation">
+                        <option value="addition">Addition</option>
+                        <option value="subtraction">Subtraction</option>
+                        <option value="multiplication" selected>Multiplication</option>
+                        <option value="division">Division</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>Numbers in each question:
+                    <input type="number" id="num-values" min="2" max="4" value="2">
+                </label>
+                <span id="num-values-error" class="error"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Numerals per number (e.g., 3x2):
+                    <input type="text" id="num-numerals" value="3x2" oninput="validateNumeralFormat()">
+                </label>
+                <span id="num-numerals-error" class="error"></span>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="include-decimal" onchange="toggleDecimalPlaces()"> Include Decimals
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>Decimal Places:
+                    <select id="decimal-places" disabled>
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>Orientation:
+                    <select id="orientation">
+                        <option value="inline">Inline</option>
+                        <option value="traditional">Traditional</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>Number of questions:
+                    <input type="number" id="num-questions" min="1" max="50" value="20">
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="long-division-option" disabled> Format Division as Long Division
+                </label>
+            </div>
+            
+
+            <button type="button" onclick="generateArithmeticTable();">Generate</button>
+            <button type="button" onclick="generateAnswerKey();">Answer Key</button>
+            <button type="button" onclick="window.print();">Print</button>
+        </form>
+        <table id="arithmetic-table">
+            <tbody></tbody>
+        </table>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
