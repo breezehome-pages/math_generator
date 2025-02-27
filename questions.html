@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Random Arithmetic Table</title>
+	<style>
+
+#printOnly {
+   display : none;
+}
+
+#date {
+   display : none;
+}
+
+@media print {
+    #printOnly {
+    position: fixed;
+    top: 1cm;
+    right: 2cm;
+    left: 2cm;
+       font-size: 12pt;
+       display : block;
+    }
+    #date {
+    position: fixed;
+    top: 1cm;
+    right: 2cm;
+       font-size: 12pt;
+       display : block;
+    }
+}
+		body {
+			padding: 0.75cm;
+			font-family: sans-serif;
+			font-size: 16pt;
+		}
+
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		td {
+			border: none;
+			padding: 0.5cm;
+			text-align: center;
+			position: relative;
+			font-size: 14pt;
+		}
+
+		td u {
+			border-bottom: 1px solid black;
+			padding-bottom: 0.1cm;
+			display: inline-block;
+			width: 2cm;
+			margin-top: 0.2cm;
+			font-size: 16pt;
+		}
+
+		h1, form {
+			text-align: center;
+		}
+
+		form {
+			margin-top: 0cm;
+			margin-bottom: 0.50cm;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+		}
+
+		form label, form input[type="checkbox"] {
+			display: inline-block;
+			margin-right: 1em;
+		}
+
+		button {
+			font-size: 14pt;
+			padding: 0.4cm;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+
+		.container {
+			max-width: 800px;
+			margin: 0 auto;
+		}
+
+		@media print {
+			h1, form {
+				display: none;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div id="printOnly">Name: ____________</div>
+		<div id="date"></div>
+
+		<h1>Random Arithmetic Table</h1>
+		<form id="options">
+			<label for="multiplication"><input type="checkbox" id="multiplication" name="operation" value="multiplication" checked>Multiplication</label>
+			<label for="division"><input type="checkbox" id="division" name="operation" value="division" checked>Division</label>
+			<label for="addition"><input type="checkbox" id="addition" name="operation" value="addition" checked>Addition</label>
+			<label for="subtraction"><input type="checkbox" id="subtraction" name="operation" value="subtraction" checked>Subtraction</label>
+			<br>
+			<button type="button" onclick="generateArithmeticTable();">Generate</button>
+			<button type="button" onclick="window.print();">Print</button>
+		</form>
+		<table id="arithmetic-table">
+			<tbody>
+			</tbody>
+		</table>
+	</div>
+	<script src="script.js"></script>
+</body>
+</html>
