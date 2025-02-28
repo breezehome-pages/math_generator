@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Arithmetic Table</title>
+    <style>
+        /* Elements only visible on screen */
+        #printOnly, #date { display: none; }
+        
+        /* Exclude elements with the no-print class when printing */
+        @media print {
+            #printOnly, #date { display: block; }
+            .no-print { display: none; }
+        }
+        
+        body {
+            padding: 0.75cm;
+            font-family: sans-serif;
+            font-size: 16pt;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        /* New form container styling */
+        .form-container {
+            background: #ffffff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 600px;
+            margin-bottom: 15px;
+        }
+        
+        label {
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        input, select {
+            flex: 1;
+            padding: 8px;
+            font-size: 14pt;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-left: 10px;
+            width: 180px; /* Fixed width for error messages */
+            min-height: 1.2em; /* Minimum height to reserve space */
+            white-space: normal; /* Allow text to wrap */
+        }
+        
+        button {
+            font-size: 14pt;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        td {
+            padding: 0.5cm;
+            text-align: center;
+            font-size: 14pt;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async 
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            loader: {load: ['[tex]/enclose']},
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                packages: {'[+]': ['enclose']}
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div id="printOnly">Name: ____________</div>
+        <div id="date"></div>
+
+        <h1>Random Arithmetic Table</h1>
+        <!-- Form container with no-print class ensures it is excluded from printing -->
+        <div class="form-container no-print">
+            <form id="options">
+                <div class="form-group">
+                    <label for="operation">Operation:</label>
+                    <select id="operation" onchange="updateFormDisplay()">
+                        <option value="addition">Addition</option>
+                        <option value="subtraction">Subtraction</option>
+                        <option value="multiplication" selected>Multiplication</option>
+                        <option value="division">Division</option>
+                    </select>
+                    <span class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group">
+                    <label for="num-values">Numbers in each question:</label>
+                    <input type="number" id="num-values" min="2" max="4" value="2" onchange="validateInputs()">
+                    <span id="num-values-error" class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group">
+                    <label for="num-numerals">Numerals per number (e.g., 3x2):</label>
+                    <input type="text" id="num-numerals" value="3x2" oninput="validateInputs()">
+                    <span id="num-numerals-error" class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group">
+                    <label for="include-decimal">
+                        <input type="checkbox" id="include-decimal" onchange="toggleDecimalPlaces()"> Include Decimals
+                    </label>
+                    <span class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group">
+                    <label for="decimal-places">Decimal Places:</label>
+                    <select id="decimal-places" disabled>
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                    </select>
+                    <span class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group">
+                    <label for="num-questions">Number of questions:</label>
+                    <input type="number" id="num-questions" min="1" max="50" value="10">
+                    <span class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group">
+                    <label for="orientation">Orientation:</label>
+                    <select id="orientation">
+                        <option value="inline">Inline</option>
+                        <option selected value="traditional">Stacked</option>
+                    </select>
+                    <span class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group" id="long-division-container" style="display: none;">
+                    <label for="long-division-option">
+                        <input type="checkbox" id="long-division-option"> Format Division as Long Division
+                    </label>
+                    <span class="error"></span> <!-- Reserved space for error -->
+                </div>
+
+                <div class="form-group" style="justify-content: center;">
+                    <button type="button" id="generate-btn" onclick="validateAndGenerate()">Generate</button>
+                    <button type="button" id="answer-key-btn" onclick="validateAndGenerateAnswers()">Answer Key</button>
+                    <button type="button" onclick="window.print();">Print</button>
+                </div>
+            </form>
+        </div>
+        <table id="arithmetic-table">
+            <tbody></tbody>
+        </table>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        const date = new Date();
+        document.getElementById("date").innerHTML = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+        
+        // Function to update form display based on operation selection
+        function updateFormDisplay() {
+            const operation = document.getElementById("operation").value;
+            const longDivisionContainer = document.getElementById("long-division-container");
+            
+            // Only show long division option for division operation
+            if (operation === "division") {
+                longDivisionContainer.style.display = "flex";
+                document.getElementById("long-division-option").disabled = false;
+            } else {
+                longDivisionContainer.style.display = "none";
+                document.getElementById("long-division-option").disabled = true;
+                document.getElementById("long-division-option").checked = false;
+            }
+        }
+        
+
+
+
+        function validateInputs() {
+    const numValues = parseInt(document.getElementById("num-values").value, 10);
+    const numeralsInput = document.getElementById("num-numerals").value.trim();
+    const errorSpan = document.getElementById("num-numerals-error");
+    
+    // Clear any existing error messages
+    errorSpan.textContent = "";
+
+    // Allow only digits and 'x'
+    if (!/^[\dx]+$/i.test(numeralsInput)) {
+        errorSpan.textContent = "Only digits and 'x' are allowed";
+        return false;
+    }
+    
+    // Check the count of 'x' delimiters
+    const xCount = (numeralsInput.match(/x/gi) || []).length;
+    const expectedXCount = numValues - 1;
+    if (xCount !== expectedXCount) {
+        if (xCount > expectedXCount) {
+            errorSpan.textContent = `Too many terms for ${numValues} numbers`;
+        } else {
+            errorSpan.textContent = `Not enough terms for ${numValues} numbers`;
+        }
+        return false;
+    }
+    
+    // Split the string into terms
+    const terms = numeralsInput.split(/x/i);
+    
+    // Check for empty terms that could result from consecutive or trailing delimiters
+    if (terms.some(term => term === "")) {
+        errorSpan.textContent = "One or more digits are missing between delimiters";
+        return false;
+    }
+    
+    // Validate each number (range, positivity, etc.)
+    for (const term of terms) {
+        const value = parseInt(term, 10);
+        if (isNaN(value)) {
+            errorSpan.textContent = "Invalid number detected";
+            return false;
+        }
+        if (value <= 0) {
+            errorSpan.textContent = "All numbers must be positive";
+            return false;
+        }
+        if (value > 999) {  // Adjust the maximum as needed
+            errorSpan.textContent = "Numbers are too large (max 999)";
+            return false;
+        }
+    }
+    
+    // All validations passed
+    return true;
+}
+
+
+
+
+
+        
+        // Function to toggle decimal places dropdown
+        function toggleDecimalPlaces() {
+            const includeDecimal = document.getElementById("include-decimal").checked;
+            document.getElementById("decimal-places").disabled = !includeDecimal;
+        }
+        
+        // Validation wrapper for generate button
+        function validateAndGenerate() {
+            if (validateInputs()) {
+                generateArithmeticTable();
+            }
+        }
+        
+        // Validation wrapper for answer key button
+        function validateAndGenerateAnswers() {
+            if (validateInputs()) {
+                generateAnswerKey();
+            }
+        }
+        
+        // Initialize form display on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            updateFormDisplay();
+            validateInputs();
+        });
+    </script>
+</body>
+</html>
