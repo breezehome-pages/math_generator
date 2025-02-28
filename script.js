@@ -20,6 +20,7 @@ function toggleLongDivisionOption() {
 
     if (operation === "division") {
         longDivisionCheckbox.disabled = false;
+        longDivisionCheckbox.checked = true; 
     } else {
         longDivisionCheckbox.disabled = true;
         longDivisionCheckbox.checked = false; // Uncheck if switching away from division
