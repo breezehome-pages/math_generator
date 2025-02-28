@@ -50,6 +50,79 @@
         },
         svg: { fontCache: 'global' }
     };
+
+</script>
+
+<script>
+
+//     document.getElementById("operation").addEventListener("change", function () {
+//     let operation = document.getElementById("operation").value;
+//     let orientationDiv = document.querySelector('label[for="orientation"]').parentElement;
+//     let longDivisionDiv = document.querySelector('label[for="long-division-option"]').parentElement;
+//     let longDivisionCheckbox = document.getElementById("long-division-option");
+
+//     if (operation === "division") {
+//         // Hide orientation (not needed for division)
+//         orientationDiv.style.display = "none";
+
+//         // Show long division format option and enable it
+//         longDivisionDiv.style.display = "block";
+//         longDivisionCheckbox.disabled = false;
+//     } else {
+//         // Show orientation for other operations
+//         orientationDiv.style.display = "block";
+
+//         // Hide and disable long division checkbox
+//         longDivisionDiv.style.display = "none";
+//         longDivisionCheckbox.checked = false;
+//         longDivisionCheckbox.disabled = true;
+//     }
+// });
+
+
+
+window.onload = function () {
+    // Get elements correctly
+    let operationSelect = document.getElementById("operation");
+    let orientationDiv = document.getElementById("orientation").parentElement;
+    let longDivisionDiv = document.getElementById("long-division-option").parentElement;
+    let longDivisionCheckbox = document.getElementById("long-division-option");
+
+    // Ensure elements exist before proceeding
+    if (!operationSelect || !orientationDiv || !longDivisionDiv || !longDivisionCheckbox) {
+        console.error("One or more elements were not found. Check your HTML element IDs and labels.");
+        return;
+    }
+
+    operationSelect.addEventListener("change", function () {
+        let operation = operationSelect.value;
+
+        if (operation === "division") {
+            // Hide orientation (not needed for division)
+            orientationDiv.style.display = "none";
+
+            // Show long division format option and enable it
+            longDivisionDiv.style.display = "block";
+            longDivisionCheckbox.disabled = false;
+        } else {
+            // Show orientation for other operations
+            orientationDiv.style.display = "block";
+
+            // Hide and disable long division checkbox
+            longDivisionDiv.style.display = "none";
+            longDivisionCheckbox.checked = false;
+            longDivisionCheckbox.disabled = true;
+        }
+    });
+
+    // Ensure correct initial state
+    operationSelect.dispatchEvent(new Event("change"));
+};
+
+
+
+
+
 </script>
 <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -104,7 +177,14 @@
             </div>
 
             <div class="form-group">
-                <label>Orientation:
+                <label>Number of questions:
+                    <input type="number" id="num-questions" min="1" max="50" value="20">
+                </label>
+            </div>
+
+
+            <div class="form-group">
+                <label for="orientation">Orientation:
                     <select id="orientation">
                         <option value="inline">Inline</option>
                         <option value="traditional">Traditional</option>
@@ -112,14 +192,9 @@
                 </label>
             </div>
 
-            <div class="form-group">
-                <label>Number of questions:
-                    <input type="number" id="num-questions" min="1" max="50" value="20">
-                </label>
-            </div>
 
             <div class="form-group">
-                <label>
+                <label for="long-division-option">
                     <input type="checkbox" id="long-division-option" disabled> Format Division as Long Division
                 </label>
             </div>
