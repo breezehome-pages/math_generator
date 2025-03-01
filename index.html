@@ -259,7 +259,7 @@
                     <label>
                         Number of questions:
                     </label>
-                    <input type="number" id="num-questions" min="1" max="50" value="10">
+                    <input type="number" id="num-questions" min="1" max="50" value="9">
                     <span class="error"></span>
                 </div>
 
@@ -293,6 +293,7 @@
             <tbody></tbody>
         </table>
     </div>
+  <script src="script.js"></script>
     <script>
         const date = new Date();
         document.getElementById("date").innerHTML = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
@@ -309,64 +310,73 @@
             } else {
                 longDivisionContainer.style.display = "none";
                 document.getElementById("long-division-option").disabled = true;
+                document.getElementById("long-division-option").checked = false;
             }
         }
+        
+
+
 
         function validateInputs() {
-            const numValues = parseInt(document.getElementById("num-values").value, 10);
-            const numeralsInput = document.getElementById("num-numerals").value.trim();
-            const errorSpan = document.getElementById("num-numerals-error");
-            
-            // Clear any existing error messages
-            errorSpan.textContent = "";
+    const numValues = parseInt(document.getElementById("num-values").value, 10);
+    const numeralsInput = document.getElementById("num-numerals").value.trim();
+    const errorSpan = document.getElementById("num-numerals-error");
+    
+    // Clear any existing error messages
+    errorSpan.textContent = "";
 
-            // Allow only digits and 'x'
-            if (!/^[\dx]+$/i.test(numeralsInput)) {
-                errorSpan.textContent = "Only digits and 'x' are allowed";
-                return false;
-            }
-            
-            // Check the count of 'x' delimiters
-            const xCount = (numeralsInput.match(/x/gi) || []).length;
-            const expectedXCount = numValues - 1;
-            if (xCount !== expectedXCount) {
-                if (xCount > expectedXCount) {
-                    errorSpan.textContent = `Too many terms for ${numValues} numbers`;
-                } else {
-                    errorSpan.textContent = `Not enough terms for ${numValues} numbers`;
-                }
-                return false;
-            }
-            
-            // Split the string into terms
-            const terms = numeralsInput.split(/x/i);
-            
-            // Check for empty terms that could result from consecutive or trailing delimiters
-            if (terms.some(term => term === "")) {
-                errorSpan.textContent = "One or more digits are missing between delimiters";
-                return false;
-            }
-            
-            // Validate each number (range, positivity, etc.)
-            for (const term of terms) {
-                const value = parseInt(term, 10);
-                if (isNaN(value)) {
-                    errorSpan.textContent = "Invalid number detected";
-                    return false;
-                }
-                if (value <= 0) {
-                    errorSpan.textContent = "All numbers must be positive";
-                    return false;
-                }
-                if (value > 999) {  // Adjust the maximum as needed
-                    errorSpan.textContent = "Numbers are too large (max 999)";
-                    return false;
-                }
-            }
-            
-            // All validations passed
-            return true;
+    // Allow only digits and 'x'
+    if (!/^[\dx]+$/i.test(numeralsInput)) {
+        errorSpan.textContent = "Only digits and 'x' are allowed";
+        return false;
+    }
+    
+    // Check the count of 'x' delimiters
+    const xCount = (numeralsInput.match(/x/gi) || []).length;
+    const expectedXCount = numValues - 1;
+    if (xCount !== expectedXCount) {
+        if (xCount > expectedXCount) {
+            errorSpan.textContent = `Too many terms for ${numValues} numbers`;
+        } else {
+            errorSpan.textContent = `Not enough terms for ${numValues} numbers`;
         }
+        return false;
+    }
+    
+    // Split the string into terms
+    const terms = numeralsInput.split(/x/i);
+    
+    // Check for empty terms that could result from consecutive or trailing delimiters
+    if (terms.some(term => term === "")) {
+        errorSpan.textContent = "One or more digits are missing between delimiters";
+        return false;
+    }
+    
+    // Validate each number (range, positivity, etc.)
+    for (const term of terms) {
+        const value = parseInt(term, 10);
+        if (isNaN(value)) {
+            errorSpan.textContent = "Invalid number detected";
+            return false;
+        }
+        if (value <= 0) {
+            errorSpan.textContent = "All numbers must be positive";
+            return false;
+        }
+        if (value > 999) {  // Adjust the maximum as needed
+            errorSpan.textContent = "Numbers are too large (max 999)";
+            return false;
+        }
+    }
+    
+    // All validations passed
+    return true;
+}
+
+
+
+
+
         
         // Function to toggle decimal places dropdown
         function toggleDecimalPlaces() {
@@ -386,15 +396,6 @@
             if (validateInputs()) {
                 generateAnswerKey();
             }
-        }
-        
-        // Mock functions for the example
-        function generateArithmeticTable() {
-            alert("This would generate your math problems!");
-        }
-        
-        function generateAnswerKey() {
-            alert("This would show the answers to your math problems!");
         }
         
         // Initialize form display on page load
