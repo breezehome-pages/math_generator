@@ -67,9 +67,34 @@
             border: none;
         }
 
-        #generate-btn { background-color: #4caf50; color: white; }
-        #answer-key-btn { background-color: #ff9800; color: white; }
-        button:last-child { background-color: #2196f3; color: white; }
+
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16pt;
+            font-weight: bold;
+            text-align: center;
+            transition: 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-home {
+            background-color: #ff9800;
+            color: white;
+            align-self: flex-start;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
+        .btn-green { background-color: #4caf50; color: white; }
+        .btn-orange { background-color: #ff9800; color: white; }
+        .btn-blue { background-color: #2196f3; color: white; }
 
         .tangle-table {
             border-collapse: collapse;
@@ -100,6 +125,10 @@
         <div id="printOnly">Name: ____________</div>
         <div id="date"></div>
 
+        <div class="home-container no-print">
+            <a href="index.html" class="btn btn-home">🏠 Home</a>
+        </div>
+
         <h1 class="no-print">Tangle Table Generator</h1>
         
         <div class="form-container no-print">
@@ -115,9 +144,11 @@
                 </div>
 
                 <div class="form-group" style="justify-content: center;">
-                    <button type="button" id="generate-btn">Generate</button>
-                    <button type="button" id="answer-key-btn">Answer Key</button>
-                    <button type="button" id="print-btn">Print</button>
+
+                    <button type="button" id="generate-btn" class="btn btn-green">Generate</button>
+                    <button type="button" id="answer-key-btn" class="btn btn-orange">Answer Key</button>
+                    <button type="button" id="print-btn" class="btn btn-blue">Print</button>
+
                 </div>
             </form>
         </div>
@@ -214,6 +245,34 @@
                     padding: 20px;
                     background-color: #f8f9fa;
                 }
+                button {
+                    font-size: 16pt;
+                    padding: 12px 25px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    margin: 10px;
+                    border: none;
+                }
+
+
+                .btn {
+                    display: inline-block;
+                    text-decoration: none;
+                    padding: 12px 25px;
+                    border-radius: 8px;
+                    font-size: 16pt;
+                    font-weight: bold;
+                    text-align: center;
+                    transition: 0.3s;
+                    cursor: pointer;
+                    border: none;
+                }
+
+                .btn-home {
+                    background-color: #ff9800;
+                    color: white;
+                    align-self: flex-start;
+                }
                 h1 {
                     color: #1e40af;
                     font-size: 28px;
@@ -242,6 +301,9 @@
             </style>
         </head>
         <body>
+            <div class="home-container no-print">
+            <a href="index.html" class="btn btn-home">🏠 Home</a>
+             </div>
             <h1>Answer Key</h1>
             <table>
                 ${generateAnswerHTML(tableData)}

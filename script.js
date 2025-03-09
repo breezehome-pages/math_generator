@@ -312,9 +312,42 @@ function generateAnswerKey() {
                     page-break-inside: avoid;
                 }
             }
+
+
+        button {
+            font-size: 16pt;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            border: none;
+        }
+
+
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16pt;
+            font-weight: bold;
+            text-align: center;
+            transition: 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-home {
+            background-color: #ff9800;
+            color: white;
+            align-self: flex-start;
+        }
         </style>
     </head>
     <body>
+            <div class="home-container no-print">
+            <a href="index.html" class="btn btn-home">🏠 Home</a>
+             </div>
         <h1>Answer Key</h1>`;
 
     answers.forEach((q, i) => {
