@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tangle Table Generator</title>
+    <style>
+        #printOnly, #date { display: none; }
+
+        @media print {
+            #printOnly, #date { display: block; }
+            .no-print { display: none; }
+        }
+
+        body {
+            padding: 0.75cm;
+            font-family: 'Roboto', 'Arial', sans-serif;
+            font-size: 16pt;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .form-container {
+            background: #ffffff;
+            padding: 20px;
+            border: 2px solid #4682b4;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 600px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            flex: 1;
+            font-weight: bold;
+            color: #2c5282;
+        }
+
+        input {
+            flex: 1;
+            padding: 8px;
+            font-size: 14pt;
+            border: 2px solid #8ab4f8;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        button {
+            font-size: 16pt;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            border: none;
+        }
+
+        #generate-btn { background-color: #4caf50; color: white; }
+        #answer-key-btn { background-color: #ff9800; color: white; }
+        button:last-child { background-color: #2196f3; color: white; }
+
+        .tangle-table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 2px solid #4682b4;
+            margin-top: 20px;
+            background-color: white;
+        }
+
+        .tangle-table th, .tangle-table td {
+            border: 1px solid #b0c4de;
+            padding: 10px;
+            text-align: center;
+            font-size: 14pt;
+            width: 50px;
+            height: 50px;
+        }
+
+        .tangle-table th {
+            background-color: #e6f2ff;
+            font-weight: bold;
+            color: #2c5282;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="printOnly">Name: ____________</div>
+        <div id="date"></div>
+
+        <h1 class="no-print">Tangle Table Generator</h1>
+        
+        <div class="form-container no-print">
+            <form id="options">
+                <div class="form-group">
+                    <label>Maximum Number:</label>
+                    <input type="number" id="max-number" min="5" max="20" value="12">
+                </div>
+
+                <div class="form-group">
+                    <label>Pre-filled Answers:</label>
+                    <input type="number" id="filled-cells" min="0" max="100" value="5">
+                </div>
+
+                <div class="form-group" style="justify-content: center;">
+                    <button type="button" id="generate-btn">Generate</button>
+                    <button type="button" id="answer-key-btn">Answer Key</button>
+                    <button type="button" id="print-btn">Print</button>
+                </div>
+            </form>
+        </div>
+        
+        <div id="tangle-table-container">
+            <table class="tangle-table" id="tangle-table"></table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("generate-btn").addEventListener("click", generateTangleTable);
+            document.getElementById("answer-key-btn").addEventListener("click", generateAnswerKey);
+            document.getElementById("print-btn").addEventListener("click", function() {
+                window.print();
+            });
+        });
+
+        function createShuffledArray(max) {
+            let array = Array.from({length: max}, (_, i) => i + 1);
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getRandomFilledPositions(maxNumber, filledCells) {
+            let positions = new Set();
+            while (positions.size < filledCells) {
+                let row = Math.floor(Math.random() * maxNumber);
+                let col = Math.floor(Math.random() * maxNumber);
+                positions.add(`${row},${col}`);
+            }
+            return positions;
+        }
+
+        function generateTangleTable() {
+            const maxNumber = parseInt(document.getElementById("max-number").value);
+            const filledCells = parseInt(document.getElementById("filled-cells").value);
+
+            const rowFactors = createShuffledArray(maxNumber);
+            const colFactors = createShuffledArray(maxNumber);
+            const filledPositions = getRandomFilledPositions(maxNumber, filledCells);
+
+            const tableData = { maxNumber, rowFactors, colFactors, filledPositions };
+            sessionStorage.setItem("tangleTableData", JSON.stringify(tableData));
+
+            generateTableHTML(tableData, false);
+        }
+
+        function generateTableHTML(tableData, showAllAnswers) {
+            const { maxNumber, rowFactors, colFactors, filledPositions } = tableData;
+            const table = document.getElementById("tangle-table");
+            table.innerHTML = "";
+
+            let headerRow = "<tr><th></th>";
+            for (let i = 0; i < maxNumber; i++) {
+                headerRow += `<th>${colFactors[i]}</th>`;
+            }
+            headerRow += "</tr>";
+            table.innerHTML += headerRow;
+
+            for (let i = 0; i < maxNumber; i++) {
+                let row = `<tr><th>${rowFactors[i]}</th>`;
+                for (let j = 0; j < maxNumber; j++) {
+                    const product = rowFactors[i] * colFactors[j];
+                    const position = `${i},${j}`;
+                    row += `<td>${showAllAnswers || filledPositions.has(position) ? product : ""}</td>`;
+                }
+                row += "</tr>";
+                table.innerHTML += row;
+            }
+        }
+
+        function generateAnswerKey() {
+    const tableDataStr = sessionStorage.getItem("tangleTableData");
+    if (!tableDataStr) {
+        alert("No table has been generated yet. Click 'Generate' first.");
+        return;
+    }
+
+    const tableData = JSON.parse(tableDataStr);
+    let answerWindow = window.open("", "_blank");
+
+    answerWindow.document.write(`
+        <html>
+        <head>
+            <title>Answer Key</title>
+            <style>
+                body {
+                    font-family: 'Roboto', 'Arial', sans-serif;
+                    text-align: center;
+                    padding: 20px;
+                    background-color: #f8f9fa;
+                }
+                h1 {
+                    color: #1e40af;
+                    font-size: 28px;
+                    margin-bottom: 20px;
+                }
+                table {
+                    border-collapse: collapse;
+                    margin: auto;
+                    background-color: white;
+                    border: 2px solid #4682b4;
+                    width: auto;
+                }
+                th, td {
+                    border: 2px solid #b0c4de;
+                    padding: 15px;
+                    text-align: center;
+                    font-size: 18px;
+                    width: 60px;
+                    height: 60px;
+                }
+                th {
+                    background-color: #e6f2ff;
+                    font-weight: bold;
+                    color: #2c5282;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Answer Key</h1>
+            <table>
+                ${generateAnswerHTML(tableData)}
+            </table>
+        </body>
+        </html>
+    `);
+    answerWindow.document.close();
+}
+
+
+function generateAnswerHTML(tableData) {
+    const { maxNumber, rowFactors, colFactors } = tableData;
+    let html = "<tr><th></th>";
+
+    // Column headers
+    for (let i = 0; i < maxNumber; i++) {
+        html += `<th>${colFactors[i]}</th>`;
+    }
+    html += "</tr>";
+
+    // Data rows
+    for (let i = 0; i < maxNumber; i++) {
+        html += `<tr><th>${rowFactors[i]}</th>`;
+        for (let j = 0; j < maxNumber; j++) {
+            html += `<td>${rowFactors[i] * colFactors[j]}</td>`;
+        }
+        html += "</tr>";
+    }
+    return html;
+}
+
+    </script>
+</body>
+</html>
