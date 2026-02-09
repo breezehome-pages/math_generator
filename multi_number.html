@@ -97,6 +97,17 @@
             justify-content: space-between;
         }
 
+        /* Nested options styling */
+        .nested-options {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
         label {
             font-weight: 700;
             color: #2c3e50;
@@ -120,6 +131,7 @@
             width: 20px;
             height: 20px;
             margin-right: 10px;
+            cursor: pointer;
         }
 
         /* Buttons Area */
@@ -235,25 +247,31 @@
                     <input type="number" id="num-values" min="2" max="5" value="2" onchange="validateInputs()">
                 </div>
 
-                <div class="form-group">
-                    <label>
-                        Numerals per number:
-                        <span class="help-tip" data-tooltip="Format: 3x2 means 3-digit × 2-digit">?</span>
-                    </label>
-                    <div>
-                        <input type="text" id="num-numerals" value="3x2" oninput="validateInputs(); updateMaxLimitPlaceholder();">
-                        <span id="num-numerals-error" class="error"></span>
+                <div class="form-group" style="flex-direction: column; align-items: stretch;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <label>
+                            Numerals per number:
+                            <span class="help-tip" data-tooltip="Format: 3x2 means 3-digit × 2-digit">?</span>
+                        </label>
+                        <div>
+                            <input type="text" id="num-numerals" value="1x1" oninput="validateInputs()">
+                            <span id="num-numerals-error" class="error"></span>
+                        </div>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        Maximum Value Limit:
-                        <span class="help-tip" data-tooltip="Optional: Cap each number (e.g. '5x12' caps first number at 5, second at 12)">?</span>
-                    </label>
-                    <div>
+                    
+                    <div class="nested-options">
+                        <label style="font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" id="enable-max-limit" onchange="toggleMaxLimitInput()"> 
+                            Limit maximum value
+                        </label>
+                    </div>
+                    
+                    <div id="max-limit-container" class="nested-options" style="display: none; border-top: none; padding-top: 5px;">
+                        <label style="padding-left: 30px;">
+                            Max value cap:
+                            <span class="help-tip" data-tooltip="Optional: Cap each number (e.g. '5x12')">?</span>
+                        </label>
                         <input type="text" id="max-value-limit" placeholder="999" onchange="validateInputs()">
-                        <span id="max-value-error" class="error"></span>
                     </div>
                 </div>
 
