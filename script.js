@@ -25,7 +25,7 @@ function toggleLongDivisionOption() {
     }
 }
 
-// UPDATED: Now calculates per-term placeholders (e.g. "99x9")
+// Update placeholder to show natural limits based on digit selection
 function updateMaxLimitPlaceholder() {
     const numeralsInput = document.getElementById("num-numerals").value;
     const maxLimitInput = document.getElementById("max-value-limit");
@@ -46,7 +46,6 @@ function updateMaxLimitPlaceholder() {
 }
 
 function validateInputs() {
-    // Sync placeholder
     updateMaxLimitPlaceholder();
 
     const numeralsInput = document.getElementById("num-numerals").value;
@@ -90,12 +89,11 @@ function generateArithmeticTable() {
     const numQuestions = parseInt(document.getElementById("num-questions").value);
     
     // 1. Parse Inputs into Arrays
-    // e.g. "2x1" -> [2, 1]
     let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
     
-    // e.g. "50x12" -> [50, 12] (Handle empty input safely)
+    // Handle Max Limits (allow empty)
     let userLimits = [];
-    if (maxLimitInputVal.trim() !== "") {
+    if (maxLimitInputVal && maxLimitInputVal.trim() !== "") {
         userLimits = maxLimitInputVal.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
     }
 
@@ -107,12 +105,10 @@ function generateArithmeticTable() {
 
         for (let j = 0; j < numValues; j++) {
             // A. Determine Digit Count for this term
-            // Recycle last value if array is short
             let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
             let digitCount = numNumerals[digitIndex];
             
-            // B. Determine Max Limit for this term
-            // Recycle last value if array is short
+            // B. Determine Max Limit for this term (if any)
             let currentLimit = null;
             if (userLimits.length > 0) {
                 let limitIndex = (j < userLimits.length) ? j : userLimits.length - 1;
@@ -120,31 +116,36 @@ function generateArithmeticTable() {
                 if (isNaN(currentLimit)) currentLimit = null;
             }
 
-            // C. Calculate Bounds
+            // C. Calculate STANDARD Bounds (based on digits)
+            // e.g. 2 digits -> min 10, max 99
             let min = Math.pow(10, digitCount - 1);
             if (digitCount === 1) min = 1; 
-            
             let max = Math.pow(10, digitCount) - 1;
             
             // D. Apply User Limit Override
             if (currentLimit !== null) {
-                // If user limit (e.g. 12) is smaller than natural max (99), use limit
-                if (currentLimit < max) {
-                    max = currentLimit;
-                }
+                // Set the max to the user's limit
+                max = currentLimit;
                 
-                // If user limit (e.g. 5) is smaller than natural min (10), drop min to 1
-                if (max < min) {
-                    min = 1;
-                }
+                // CRITICAL CHANGE: 
+                // If a user limit is set, we assume they want the range "1 to Limit".
+                // We override the 'digit-based' minimum (e.g. 10) and set it to 1.
+                // This allows 2-digit settings to generate single digit numbers (e.g. 0-12).
+                min = 1; 
+
+                // Note: If you want to include 0, change min to 0 above. 
+                // Usually worksheets avoid 0 for standard multiplication/division to avoid triviality.
             }
 
             // E. Generate
+            // Ensure min isn't somehow greater than max (e.g. if user entered limit 0)
+            if (max < min) max = min;
+            
             let number = Math.floor(Math.random() * (max - min + 1)) + min;
 
             // F. Final Safety Check
-            if (currentLimit !== null) {
-                if (number > currentLimit) number = currentLimit;
+            if (currentLimit !== null && number > currentLimit) {
+                number = currentLimit;
             }
 
             if (includeDecimal) {
