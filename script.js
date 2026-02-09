@@ -55,7 +55,6 @@ function validateInputs() {
 
     const parts = numeralsInput.toLowerCase().split('x').filter(p => p !== "");
     if (parts.length !== numValues && parts.length !== 1) {
-        // We allow length 1 (e.g. "2" becomes "2x2" logic automatically)
         if(parts.length > 1 && parts.length !== numValues) {
                 errorSpan.textContent = `Expected ${numValues} terms (e.g. 3x2x1)`;
                 return false;
@@ -80,8 +79,8 @@ function generateArithmeticTable() {
     const numQuestions = parseInt(document.getElementById("num-questions").value);
     
     // Max Limit Logic
-    let userMaxLimit = parseInt(document.getElementById("max-value-limit").value);
-    if (isNaN(userMaxLimit)) userMaxLimit = null;
+    let maxInputVal = document.getElementById("max-value-limit").value;
+    let userMaxLimit = (maxInputVal === "") ? null : parseInt(maxInputVal);
 
     // Parse numerals config (e.g., "3x2")
     let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
@@ -97,23 +96,29 @@ function generateArithmeticTable() {
             let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
             let digitCount = numNumerals[digitIndex];
             
+            // Standard Bounds
             let min = Math.pow(10, digitCount - 1);
-            if (digitCount === 1) min = 1; // Start at 1 for single digits
-            
+            if (digitCount === 1) min = 1; 
             let naturalMax = Math.pow(10, digitCount) - 1;
             
-            // Apply the User defined Max Limit
+            // Apply User Defined Max Limit
             let effectiveMax = naturalMax;
-            if (userMaxLimit && userMaxLimit < naturalMax) {
-                effectiveMax = userMaxLimit;
+            
+            if (userMaxLimit !== null) {
+                // If user set a limit (e.g. 50), use it
+                if (userMaxLimit < naturalMax) {
+                    effectiveMax = userMaxLimit;
+                }
+                
+                // SMART FIX: If the user's max limit is smaller than the natural minimum 
+                // (e.g. Limit 5 but "2-digits" usually means min 10),
+                // we drop the minimum to 1 to allow generation to proceed.
+                if (effectiveMax < min) {
+                    min = 1;
+                }
             }
 
-            // Safety check
-            if (effectiveMax < min) {
-                alert(`Error: Max limit (${effectiveMax}) is smaller than minimum possible value (${min}) for a ${digitCount}-digit number.`);
-                return;
-            }
-
+            // Generate Random Number
             let number = Math.floor(Math.random() * (effectiveMax - min + 1)) + min;
 
             if (includeDecimal) {
@@ -129,6 +134,7 @@ function generateArithmeticTable() {
             numbers.sort((a, b) => b - a); // Ensure dividend is larger
             if (!includeDecimal) {
                 // Ensure no remainders for integer division
+                if (numbers[1] === 0) numbers[1] = 1; // Prevent div by zero
                 let remainder = numbers[0] % numbers[1];
                 numbers[0] = numbers[0] - remainder;
                 if(numbers[0] === 0) numbers[0] = numbers[1] * 2;
@@ -273,8 +279,6 @@ function generateAnswerKey() {
 
     questions.forEach((q, i) => {
         let prob = q.numbers.join(getSymbol(q.operation));
-        // Simple text representation for the key logic
-        
         html += `
             <div class="key-item">
                 <strong>${i+1}.</strong> Answer: <b>${q.answer}</b><br>
