@@ -1,6 +1,7 @@
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", function() {
     toggleLongDivisionOption();
+    toggleMaxLimitInput();
     updateMaxLimitPlaceholder();
 });
 
@@ -25,7 +26,15 @@ function toggleLongDivisionOption() {
     }
 }
 
-// Update placeholder to show natural limits based on digit selection
+function toggleMaxLimitInput() {
+    const isChecked = document.getElementById("enable-max-limit").checked;
+    const container = document.getElementById("max-limit-container");
+    container.style.display = isChecked ? "flex" : "none";
+    if (isChecked) {
+        updateMaxLimitPlaceholder();
+    }
+}
+
 function updateMaxLimitPlaceholder() {
     const numeralsInput = document.getElementById("num-numerals").value;
     const maxLimitInput = document.getElementById("max-value-limit");
@@ -39,7 +48,6 @@ function updateMaxLimitPlaceholder() {
         return Math.pow(10, d) - 1;
     });
 
-    // Join back with 'x' (e.g. "99x9")
     if (maxArray.length > 0) {
         maxLimitInput.placeholder = maxArray.join('x');
     }
@@ -80,6 +88,7 @@ function generateArithmeticTable() {
     const numValues = parseInt(document.getElementById("num-values").value);
     
     const numeralsInput = document.getElementById("num-numerals").value;
+    const maxLimitEnabled = document.getElementById("enable-max-limit").checked;
     const maxLimitInputVal = document.getElementById("max-value-limit").value;
     
     const includeDecimal = document.getElementById("include-decimal").checked;
@@ -91,9 +100,9 @@ function generateArithmeticTable() {
     // 1. Parse Inputs into Arrays
     let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
     
-    // Handle Max Limits (allow empty)
+    // Handle Max Limits (Only if checkbox is enabled)
     let userLimits = [];
-    if (maxLimitInputVal && maxLimitInputVal.trim() !== "") {
+    if (maxLimitEnabled && maxLimitInputVal && maxLimitInputVal.trim() !== "") {
         userLimits = maxLimitInputVal.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
     }
 
@@ -104,11 +113,11 @@ function generateArithmeticTable() {
         let numbers = [];
 
         for (let j = 0; j < numValues; j++) {
-            // A. Determine Digit Count for this term
+            // A. Determine Digit Count
             let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
             let digitCount = numNumerals[digitIndex];
             
-            // B. Determine Max Limit for this term (if any)
+            // B. Determine Max Limit
             let currentLimit = null;
             if (userLimits.length > 0) {
                 let limitIndex = (j < userLimits.length) ? j : userLimits.length - 1;
@@ -116,34 +125,23 @@ function generateArithmeticTable() {
                 if (isNaN(currentLimit)) currentLimit = null;
             }
 
-            // C. Calculate STANDARD Bounds (based on digits)
-            // e.g. 2 digits -> min 10, max 99
+            // C. Calculate STANDARD Bounds
             let min = Math.pow(10, digitCount - 1);
             if (digitCount === 1) min = 1; 
             let max = Math.pow(10, digitCount) - 1;
             
             // D. Apply User Limit Override
             if (currentLimit !== null) {
-                // Set the max to the user's limit
                 max = currentLimit;
-                
-                // CRITICAL CHANGE: 
-                // If a user limit is set, we assume they want the range "1 to Limit".
-                // We override the 'digit-based' minimum (e.g. 10) and set it to 1.
-                // This allows 2-digit settings to generate single digit numbers (e.g. 0-12).
+                // Override min to 1 if a limit is set, allowing range 1-Limit
                 min = 1; 
-
-                // Note: If you want to include 0, change min to 0 above. 
-                // Usually worksheets avoid 0 for standard multiplication/division to avoid triviality.
             }
 
             // E. Generate
-            // Ensure min isn't somehow greater than max (e.g. if user entered limit 0)
             if (max < min) max = min;
-            
             let number = Math.floor(Math.random() * (max - min + 1)) + min;
 
-            // F. Final Safety Check
+            // F. Safety Check
             if (currentLimit !== null && number > currentLimit) {
                 number = currentLimit;
             }
@@ -244,9 +242,25 @@ function generateArithmeticTable() {
     }
 }
 
+// FIX: Manually build the padding string instead of using padStart with LaTeX
 function formatTraditional(numbers, opSymbol) {
+    // 1. Find the length of the longest number
     let maxLength = Math.max(...numbers.map(n => n.toString().length));
-    let padded = numbers.map(n => n.toString().padStart(maxLength, '\\phantom{0}'));
+    
+    // 2. Map numbers to padded LaTeX strings
+    let padded = numbers.map(n => {
+        let str = n.toString();
+        let diff = maxLength - str.length;
+        
+        // Manual loop to add \phantom{0} for every missing digit
+        let padding = "";
+        for (let k = 0; k < diff; k++) {
+            padding += "\\phantom{0}";
+        }
+        
+        return padding + str;
+    });
+
     let content = "";
     for(let i=0; i<padded.length; i++) {
         if(i === padded.length - 1) {
