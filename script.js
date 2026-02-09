@@ -78,9 +78,9 @@ function generateArithmeticTable() {
     const longDivision = document.getElementById("long-division-option").checked;
     const numQuestions = parseInt(document.getElementById("num-questions").value);
     
-    // Max Limit Logic
+    // 1. Get the Max Limit Input safely
     let maxInputVal = document.getElementById("max-value-limit").value;
-    let userMaxLimit = (maxInputVal === "") ? null : parseInt(maxInputVal);
+    let userMaxLimit = (maxInputVal === "" || maxInputVal === null) ? null : parseInt(maxInputVal);
 
     // Parse numerals config (e.g., "3x2")
     let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
@@ -96,30 +96,27 @@ function generateArithmeticTable() {
             let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
             let digitCount = numNumerals[digitIndex];
             
-            // Standard Bounds
+            // 2. Define Natural Bounds based on digits (e.g., 2 digits = 10 to 99)
             let min = Math.pow(10, digitCount - 1);
-            if (digitCount === 1) min = 1; 
-            let naturalMax = Math.pow(10, digitCount) - 1;
+            if (digitCount === 1) min = 1; // 1-digit is 1-9
             
-            // Apply User Defined Max Limit
-            let effectiveMax = naturalMax;
+            let max = Math.pow(10, digitCount) - 1;
             
-            if (userMaxLimit !== null) {
-                // If user set a limit (e.g. 50), use it
-                if (userMaxLimit < naturalMax) {
-                    effectiveMax = userMaxLimit;
-                }
+            // 3. Apply User Cap Overrides
+            if (userMaxLimit !== null && !isNaN(userMaxLimit)) {
+                // The max cannot exceed the user cap
+                max = Math.min(max, userMaxLimit);
                 
-                // SMART FIX: If the user's max limit is smaller than the natural minimum 
-                // (e.g. Limit 5 but "2-digits" usually means min 10),
-                // we drop the minimum to 1 to allow generation to proceed.
-                if (effectiveMax < min) {
+                // CRITICAL FIX: If the user Cap (e.g. 5) is lower than the natural Min (e.g. 10 for 2-digits),
+                // we must lower the Min to 1 to allow generation to work.
+                if (max < min) {
                     min = 1;
                 }
             }
 
-            // Generate Random Number
-            let number = Math.floor(Math.random() * (effectiveMax - min + 1)) + min;
+            // 4. Generate Random Number
+            // Math.random() * (max - min + 1) + min
+            let number = Math.floor(Math.random() * (max - min + 1)) + min;
 
             if (includeDecimal) {
                 let decString = (Math.random()).toFixed(decimalPlaces);
@@ -134,7 +131,7 @@ function generateArithmeticTable() {
             numbers.sort((a, b) => b - a); // Ensure dividend is larger
             if (!includeDecimal) {
                 // Ensure no remainders for integer division
-                if (numbers[1] === 0) numbers[1] = 1; // Prevent div by zero
+                if (numbers[1] === 0) numbers[1] = 1; 
                 let remainder = numbers[0] % numbers[1];
                 numbers[0] = numbers[0] - remainder;
                 if(numbers[0] === 0) numbers[0] = numbers[1] * 2;
