@@ -1,216 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Practice Worksheet</title>
-    <style>
-        /* Elements only visible on screen */
-        #printOnly, #date { display: none; }
-        
-        /* Exclude elements with the no-print class when printing */
-        @media print {
-            #printOnly, #date { display: block; }
-            .no-print { display: none; }
-        }
-        
-        body {
-            padding: 0.75cm;
-            font-family: 'Roboto', 'Arial', sans-serif;
-            font-size: 16pt;
-            background-color: #f0f8ff;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        
-        /* Form container styling */
-        .form-container {
-            background: #ffffff;
-            padding: 20px;
-            border: 2px solid #4682b4;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .form-group {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 80%;
-            max-width: 600px;
-            margin-bottom: 15px;
-            background-color: #e6f2ff;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        
-        label {
-            flex: 1;
-            margin-right: 10px;
-            font-weight: bold;
-            color: #2c5282;
-        }
-        
-        input, select {
-            flex: 1;
-            padding: 8px;
-            font-size: 14pt;
-            border: 2px solid #8ab4f8;
-            border-radius: 8px;
-            background-color: #fff;
-        }
-        
-        .error {
-            color: #e53e3e;
-            font-size: 14px;
-            margin-left: 10px;
-            width: 180px;
-            min-height: 1.2em;
-            white-space: normal;
-        }
-        
-        button {
-            font-size: 16pt;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-            border: none;
-            font-family: 'Roboto', 'Arial', sans-serif;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-
-
-        button {
-            font-size: 16pt;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-            border: none;
-        }
-
-
-        .btn {
-            display: inline-block;
-            text-decoration: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 16pt;
-            font-weight: bold;
-            text-align: center;
-            transition: 0.3s;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-home {
-            background-color: #ff9800;
-            color: white;
-            align-self: flex-start;
-        }
-        
-        #generate-btn {
-            background-color: #4caf50;
-            color: white;
-        }
-        
-        #answer-key-btn {
-            background-color: #ff9800;
-            color: white;
-        }
-        
-        button:last-child {
-            background-color: #2196f3;
-            color: white;
-        }
-        
-        button:hover {
-            transform: scale(1.05);
-            opacity: 0.85;
-        }
-        
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            background-color: white;
-            border: 2px solid #4682b4;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        
-        td {
-            padding: 0.5cm;
-            text-align: center;
-            font-size: 14pt;
-            border: 1px solid #b0c4de;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #1e40af;
-            font-size: 28pt;
-            margin-bottom: 20px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        
-        /* Help tooltips */
-        .help-tip {
-            position: relative;
-            display: inline-block;
-            margin-left: 5px;
-            width: 20px;
-            height: 20px;
-            background-color: #8ab4f8;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 20px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .help-tip:hover .tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
-        
-        .tooltip {
-            visibility: hidden;
-            background-color: #555;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -60px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            width: 120px;
-            font-size: 12px;
-        }
-    </style>
+    
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async 
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         window.MathJax = {
             loader: {load: ['[tex]/enclose']},
@@ -221,223 +17,302 @@
             svg: { fontCache: 'global' }
         };
     </script>
+
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --light-blue-bg: #eaf4fc;
+            --border-blue: #cbd5e1;
+            --btn-orange: #f59e0b;
+            --btn-green: #4caf50;
+            --btn-blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Screen-only elements */
+        .no-print {
+            display: block;
+        }
+
+        /* Print styling */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; padding: 0; }
+            .container { max-width: 100%; margin: 0; }
+            #arithmetic-table { width: 100%; }
+            td { padding: 1cm 0.5cm !important; }
+            .form-container { display: none; }
+        }
+
+        /* Home Button */
+        .btn-home {
+            background-color: var(--btn-orange);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-blue);
+            font-size: 2.5rem;
+            margin: 20px 0 30px 0;
+        }
+
+        /* Main Form Container */
+        .form-container {
+            background: #ffffff;
+            border: 2px solid #3b82f6;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            background-color: var(--light-blue-bg);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        label {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"], 
+        input[type="number"], 
+        select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-blue);
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 200px;
+            outline: none;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+
+        /* Buttons Area */
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+
+        #generate-btn { background-color: var(--btn-green); }
+        #answer-key-btn { background-color: var(--btn-orange); }
+        #print-btn { background-color: var(--btn-blue); }
+
+        /* Tooltips */
+        .help-tip {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 20px;
+            height: 20px;
+            background-color: #93c5fd;
+            color: white;
+            border-radius: 50%;
+            margin-left: 8px;
+            font-size: 14px;
+            cursor: help;
+            position: relative;
+        }
+
+        .help-tip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .error {
+            color: #dc2626;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        /* Output Table */
+        #arithmetic-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        #arithmetic-table td {
+            vertical-align: top;
+            padding: 20px;
+            text-align: left;
+            font-size: 18pt;
+            width: 33%;
+        }
+
+        .question-box {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div id="printOnly">Name: ____________</div>
-        <div id="date"></div>
 
-        <div class="home-container no-print">
-            <a href="index.html" class="btn btn-home">🏠 Home</a>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 20px;">
+            <a href="#" class="btn-home">🏠 Home</a>
         </div>
 
         <h1 class="no-print">Math Practice Worksheet</h1>
-        <!-- Form container with no-print class ensures it is excluded from printing -->
+
         <div class="form-container no-print">
-            <form id="options">
+            <form id="mathForm">
+                
                 <div class="form-group">
-                    <label>
-                        Operation:
-                    </label>
-                    <select id="operation" onchange="updateFormDisplay()">
+                    <label>Operation:</label>
+                    <select id="operation" onchange="toggleLongDivisionOption()">
                         <option value="addition">Addition (+)</option>
                         <option value="subtraction">Subtraction (-)</option>
                         <option value="multiplication" selected>Multiplication (×)</option>
                         <option value="division">Division (÷)</option>
                     </select>
-                    <span class="error"></span>
                 </div>
 
                 <div class="form-group">
                     <label>
                         Numbers in each question:
-                        <span class="help-tip">?
-                            <span class="tooltip">How many numbers to include in each problem</span>
-                        </span>
+                        <span class="help-tip" data-tooltip="How many numbers in the problem">?</span>
                     </label>
-                    <input type="number" id="num-values" min="2" max="4" value="2" onchange="validateInputs()">
-                    <span id="num-values-error" class="error"></span>
+                    <input type="number" id="num-values" min="2" max="5" value="2" onchange="validateInputs()">
                 </div>
 
                 <div class="form-group">
                     <label>
                         Numerals per number:
-                        <span class="help-tip">?
-                            <span class="tooltip">Example: 2x1 means 2-digit × 1-digit numbers (like 42×5)</span>
-                        </span>
+                        <span class="help-tip" data-tooltip="Format: 3x2 means 3-digit × 2-digit">?</span>
                     </label>
-                    <input type="text" id="num-numerals" value="3x2" oninput="validateInputs()">
-                    <span id="num-numerals-error" class="error"></span>
+                    <div>
+                        <input type="text" id="num-numerals" value="3x2" oninput="validateInputs(); updateMaxLimitPlaceholder();">
+                        <span id="num-numerals-error" class="error"></span>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="include-decimal" onchange="toggleDecimalPlaces()"> 
-                        Include Decimals
+                        Maximum Value Limit:
+                        <span class="help-tip" data-tooltip="Optional: Cap numbers (e.g. 12 for times tables)">?</span>
                     </label>
-                    <span class="error"></span>
+                    <div>
+                        <input type="number" id="max-value-limit" min="1" placeholder="999" onchange="validateInputs()">
+                        <span id="max-value-error" class="error"></span>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        Decimal Places:
+                    <label style="cursor: pointer;">
+                        <div style="display:flex; align-items:center;">
+                            <input type="checkbox" id="include-decimal" onchange="toggleDecimalPlaces()"> 
+                            Include Decimals
+                        </div>
                     </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Decimal Places:</label>
                     <select id="decimal-places" disabled>
                         <option value="1">1 decimal place</option>
                         <option value="2" selected>2 decimal places</option>
                         <option value="3">3 decimal places</option>
                     </select>
-                    <span class="error"></span>
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        Number of questions:
-                    </label>
+                    <label>Number of questions:</label>
                     <input type="number" id="num-questions" min="1" max="50" value="9">
-                    <span class="error"></span>
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        Orientation:
-                    </label>
+                    <label>Orientation:</label>
                     <select id="orientation">
+                        <option value="traditional">Stacked</option>
                         <option value="inline">Inline</option>
-                        <option selected value="traditional">Stacked</option>
                     </select>
-                    <span class="error"></span>
                 </div>
 
-                <div class="form-group" id="long-division-container">
-                    <label>
-                        <input type="checkbox" id="long-division-option" checked> 
-                        Format Division as Long Division
+                <div class="form-group" id="long-division-container" style="display:none;">
+                    <label style="cursor: pointer;">
+                        <div style="display:flex; align-items:center;">
+                            <input type="checkbox" id="long-division-option"> 
+                            Format as Long Division
+                        </div>
                     </label>
-                    <span class="error"></span>
                 </div>
 
-                <div class="form-group" style="justify-content: center; background-color: transparent;">
-                    <button type="button" id="generate-btn" onclick="validateAndGenerate()">Generate</button>
-                    <button type="button" id="answer-key-btn" onclick="validateAndGenerateAnswers()">Answer Key</button>
-                    <button type="button" onclick="window.print();">Print</button>
+                <div class="button-row">
+                    <button type="button" id="generate-btn" onclick="generateArithmeticTable()">Generate</button>
+                    <button type="button" id="answer-key-btn" onclick="generateAnswerKey()">Answer Key</button>
+                    <button type="button" id="print-btn" onclick="window.print()">Print</button>
                 </div>
             </form>
+        </div>
+
+        <div id="print-header" style="display:none;">
+            <h2>Name: ____________________ Date: ___________</h2>
         </div>
         <table id="arithmetic-table">
             <tbody></tbody>
         </table>
     </div>
-  <script src="script.js"></script>
-    <script>
-        const date = new Date();
-        document.getElementById("date").innerHTML = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
-        
-        // Function to update form display based on operation selection
-        function updateFormDisplay() {
-            const operation = document.getElementById("operation").value;
-            const longDivisionContainer = document.getElementById("long-division-container");
-            
-            // Only show long division option for division operation
-            if (operation === "division") {
-                longDivisionContainer.style.display = "flex";
-                document.getElementById("long-division-option").disabled = false;
-            } else {
-                longDivisionContainer.style.display = "none";
-                document.getElementById("long-division-option").disabled = true;
-                document.getElementById("long-division-option").checked = false;
-            }
-        }
-        
 
-
-
-        function validateInputs() {
-    const numValues = parseInt(document.getElementById("num-values").value, 10);
-    const numeralsInput = document.getElementById("num-numerals").value.trim();
-    const errorSpan = document.getElementById("num-numerals-error");
-    
-    // Clear any existing error messages
-    errorSpan.textContent = "";
-
-    // Allow only digits and 'x'
-    if (!/^[\dx]+$/i.test(numeralsInput)) {
-        errorSpan.textContent = "Only digits and 'x' are allowed";
-        return false;
-    }
-    
-    // Check the count of 'x' delimiters
-    const xCount = (numeralsInput.match(/x/gi) || []).length;
-    const expectedXCount = numValues - 1;
-    if (xCount !== expectedXCount) {
-        if (xCount > expectedXCount) {
-            errorSpan.textContent = `Too many terms for ${numValues} numbers`;
-        } else {
-            errorSpan.textContent = `Not enough terms for ${numValues} numbers`;
-        }
-        return false;
-    }
-    
-    // Split the string into terms
-    const terms = numeralsInput.split(/x/i);
-    
-    // Check for empty terms that could result from consecutive or trailing delimiters
-    if (terms.some(term => term === "")) {
-        errorSpan.textContent = "One or more digits are missing between delimiters";
-        return false;
-    }
-    
-    // Validate each number (range, positivity, etc.)
-    for (const term of terms) {
-        const value = parseInt(term, 10);
-        if (isNaN(value)) {
-            errorSpan.textContent = "Invalid number detected";
-            return false;
-        }
-        if (value <= 0) {
-            errorSpan.textContent = "All numbers must be positive";
-            return false;
-        }
-        if (value > 999) {  // Adjust the maximum as needed
-            errorSpan.textContent = "Numbers are too large (max 999)";
-            return false;
-        }
-    }
-    
-    // All validations passed
-    return true;
-}
-
-
-
-
-
-        
-        // Function to toggle decimal places dropdown
-        function toggleDecimalPlaces() {
-            const includeDecimal = document.getElementById("include-decimal").checked;
-            document.getElementById("decimal-places").disabled = !includeDecimal;
-        }
-        
-        // Validation wrapper for generate button
-        function validateAndGenerate() {
-            if (validateInputs()) {
-                generateArithmeticTable();
-            }
-        }
-        
-        // Validation wrapper for answer key button
-        function validateAndGenerateAnswers() {
-            if (validateInputs()) {
-                generateAnswerKey();
-            }
-        }
-        
-        // Initialize form display on page load
-        document.addEventListener("DOMContentLoaded", function() {
-            updateFormDisplay();
-            validateInputs();
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
