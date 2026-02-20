@@ -1,8 +1,7 @@
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", function() {
     toggleLongDivisionOption();
-    toggleMaxLimitInput();
-    updateMaxLimitPlaceholder();
+    // Removed the old max limit check that was causing the crash
 });
 
 // --- UI Logic ---
@@ -26,36 +25,14 @@ function toggleLongDivisionOption() {
     }
 }
 
-function toggleMaxLimitInput() {
-    const isChecked = document.getElementById("enable-max-limit").checked;
-    const container = document.getElementById("max-limit-container");
+// Updated to match the new kid-friendly HTML IDs
+function toggleValueLimits() {
+    const isChecked = document.getElementById("enable-value-limits").checked;
+    const container = document.getElementById("value-limits-container");
     container.style.display = isChecked ? "flex" : "none";
-    if (isChecked) {
-        updateMaxLimitPlaceholder();
-    }
-}
-
-function updateMaxLimitPlaceholder() {
-    const numeralsInput = document.getElementById("num-numerals").value;
-    const maxLimitInput = document.getElementById("max-value-limit");
-    
-    // Parse digits configuration
-    const digitsArray = numeralsInput.toLowerCase().split('x').map(s => parseInt(s.trim()));
-    
-    // Calculate natural max for each term
-    const maxArray = digitsArray.map(d => {
-        if (isNaN(d)) return 9;
-        return Math.pow(10, d) - 1;
-    });
-
-    if (maxArray.length > 0) {
-        maxLimitInput.placeholder = maxArray.join('x');
-    }
 }
 
 function validateInputs() {
-    updateMaxLimitPlaceholder();
-
     const numeralsInput = document.getElementById("num-numerals").value;
     const numValues = parseInt(document.getElementById("num-values").value);
     const errorSpan = document.getElementById("num-numerals-error");
@@ -88,8 +65,11 @@ function generateArithmeticTable() {
     const numValues = parseInt(document.getElementById("num-values").value);
     
     const numeralsInput = document.getElementById("num-numerals").value;
-    const maxLimitEnabled = document.getElementById("enable-max-limit").checked;
-    const maxLimitInputVal = document.getElementById("max-value-limit").value;
+    
+    // Grab the new Min / Max limits
+    const limitsEnabled = document.getElementById("enable-value-limits").checked;
+    const minLimitVal = parseInt(document.getElementById("min-value-limit").value);
+    const maxLimitVal = parseInt(document.getElementById("max-value-limit").value);
     
     const includeDecimal = document.getElementById("include-decimal").checked;
     const decimalPlaces = parseInt(document.getElementById("decimal-places").value);
@@ -100,12 +80,6 @@ function generateArithmeticTable() {
     // 1. Parse Inputs into Arrays
     let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
     
-    // Handle Max Limits (Only if checkbox is enabled)
-    let userLimits = [];
-    if (maxLimitEnabled && maxLimitInputVal && maxLimitInputVal.trim() !== "") {
-        userLimits = maxLimitInputVal.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
-    }
-
     table.innerHTML = "";
     let questions = [];
 
@@ -117,34 +91,21 @@ function generateArithmeticTable() {
             let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
             let digitCount = numNumerals[digitIndex];
             
-            // B. Determine Max Limit
-            let currentLimit = null;
-            if (userLimits.length > 0) {
-                let limitIndex = (j < userLimits.length) ? j : userLimits.length - 1;
-                currentLimit = userLimits[limitIndex];
-                if (isNaN(currentLimit)) currentLimit = null;
-            }
-
-            // C. Calculate STANDARD Bounds
+            // B. Calculate STANDARD Bounds based on digits (e.g., 10 to 99)
             let min = Math.pow(10, digitCount - 1);
             if (digitCount === 1) min = 1; 
             let max = Math.pow(10, digitCount) - 1;
             
-            // D. Apply User Limit Override
-            if (currentLimit !== null) {
-                max = currentLimit;
-                // Override min to 1 if a limit is set, allowing range 1-Limit
-                min = 1; 
+            // C. Apply User Limit Override ONLY to the first number (j === 0)
+            // This locks in the times tables (e.g., 6 x random_number)
+            if (limitsEnabled && j === 0) {
+                if (!isNaN(minLimitVal)) min = minLimitVal;
+                if (!isNaN(maxLimitVal)) max = maxLimitVal;
+                if (max < min) max = min; // Safety check if user types backwards
             }
 
-            // E. Generate
-            if (max < min) max = min;
+            // D. Generate
             let number = Math.floor(Math.random() * (max - min + 1)) + min;
-
-            // F. Safety Check
-            if (currentLimit !== null && number > currentLimit) {
-                number = currentLimit;
-            }
 
             if (includeDecimal) {
                 let decString = (Math.random()).toFixed(decimalPlaces);
@@ -242,7 +203,6 @@ function generateArithmeticTable() {
     }
 }
 
-// FIX: Manually build the padding string instead of using padStart with LaTeX
 function formatTraditional(numbers, opSymbol) {
     // 1. Find the length of the longest number
     let maxLength = Math.max(...numbers.map(n => n.toString().length));
