@@ -261,17 +261,26 @@
                     
                     <div class="nested-options">
                         <label style="font-weight: normal; cursor: pointer;">
-                            <input type="checkbox" id="enable-max-limit" onchange="toggleMaxLimitInput()"> 
-                            Limit maximum value
+                            <input type="checkbox" id="enable-value-limits" onchange="toggleValueLimits()"> 
+                            Set specific Min / Max limits
                         </label>
                     </div>
                     
-                    <div id="max-limit-container" class="nested-options" style="display: none; border-top: none; padding-top: 5px;">
-                        <label style="padding-left: 30px;">
-                            Max value cap:
-                            <span class="help-tip" data-tooltip="Optional: Cap each number (e.g. '5x12')">?</span>
-                        </label>
-                        <input type="text" id="max-value-limit" placeholder="999" onchange="validateInputs()">
+                    <div id="value-limits-container" class="nested-options" style="display: none; border-top: none; padding-top: 5px; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px;">
+                                Min value:
+                                <span class="help-tip" data-tooltip="e.g. '6x1' for the 6 times tables">?</span>
+                            </label>
+                            <input type="text" id="min-value-limit" placeholder="e.g. 6x1" onchange="validateInputs()">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px;">
+                                Max value:
+                                <span class="help-tip" data-tooltip="e.g. '6x12' for the 6 times tables">?</span>
+                            </label>
+                            <input type="text" id="max-value-limit" placeholder="e.g. 6x12" onchange="validateInputs()">
+                        </div>
                     </div>
                 </div>
 
