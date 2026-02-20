@@ -261,25 +261,43 @@
                     
                     <div class="nested-options">
                         <label style="font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" id="enable-times-table" onchange="toggleTimesTable()"> 
+                            Practice a specific times table
+                        </label>
+                    </div>
+                    
+                    <div id="times-table-container" class="nested-options" style="display: none; border-top: none; padding-top: 5px; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px; font-weight: normal;">
+                                Times table for:
+                                <span class="help-tip" data-tooltip="e.g. Type '6' for the 6 times table">?</span>
+                            </label>
+                            <input type="number" id="times-table-number" value="6">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px; font-weight: normal;">
+                                Up to what multiplier?
+                                <span class="help-tip" data-tooltip="Usually up to 12 (e.g. 6 × 12)">?</span>
+                            </label>
+                            <input type="number" id="times-table-max-multiplier" value="12">
+                        </div>
+                    </div>
+
+                    <div class="nested-options">
+                        <label style="font-weight: normal; cursor: pointer;">
                             <input type="checkbox" id="enable-value-limits" onchange="toggleValueLimits()"> 
-                            Pick exact numbers (like the 6 times table)
+                            Set specific Min / Max limits
                         </label>
                     </div>
                     
                     <div id="value-limits-container" class="nested-options" style="display: none; border-top: none; padding-top: 5px; flex-direction: column; gap: 10px;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <label style="padding-left: 30px; font-weight: normal;">
-                                Smallest number:
-                                <span class="help-tip" data-tooltip="For the 6 times table, type 6">?</span>
-                            </label>
-                            <input type="number" id="min-value-limit" placeholder="6">
+                            <label style="padding-left: 30px; font-weight: normal;">Smallest number:</label>
+                            <input type="number" id="min-value-limit" value="1">
                         </div>
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <label style="padding-left: 30px; font-weight: normal;">
-                                Biggest number:
-                                <span class="help-tip" data-tooltip="For the 6 times table, type 6">?</span>
-                            </label>
-                            <input type="number" id="max-value-limit" placeholder="6">
+                            <label style="padding-left: 30px; font-weight: normal;">Biggest number:</label>
+                            <input type="number" id="max-value-limit" value="99">
                         </div>
                     </div>
                 </div>
@@ -339,19 +357,6 @@
             <tbody></tbody>
         </table>
     </div>
-
-    <script>
-        function toggleValueLimits() {
-            const isChecked = document.getElementById('enable-value-limits').checked;
-            const container = document.getElementById('value-limits-container');
-            
-            if (isChecked) {
-                container.style.display = 'flex';
-            } else {
-                container.style.display = 'none';
-            }
-        }
-    </script>
 
     <script src="script.js"></script>
 </body>
