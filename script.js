@@ -1,7 +1,6 @@
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", function() {
     toggleLongDivisionOption();
-    // Removed the old max limit check that was causing the crash
 });
 
 // --- UI Logic ---
@@ -25,10 +24,17 @@ function toggleLongDivisionOption() {
     }
 }
 
-// Updated to match the new kid-friendly HTML IDs
+// Shows/hides generic Min-Max Limits
 function toggleValueLimits() {
     const isChecked = document.getElementById("enable-value-limits").checked;
     const container = document.getElementById("value-limits-container");
+    container.style.display = isChecked ? "flex" : "none";
+}
+
+// Shows/hides Specific Times Table feature
+function toggleTimesTable() {
+    const isChecked = document.getElementById("enable-times-table").checked;
+    const container = document.getElementById("times-table-container");
     container.style.display = isChecked ? "flex" : "none";
 }
 
@@ -39,7 +45,6 @@ function validateInputs() {
     
     errorSpan.textContent = "";
 
-    // Basic regex validation
     if (!/^[\dx]+$/i.test(numeralsInput)) {
         errorSpan.textContent = "Only digits and 'x' allowed";
         return false;
@@ -66,7 +71,12 @@ function generateArithmeticTable() {
     
     const numeralsInput = document.getElementById("num-numerals").value;
     
-    // Grab the new Min / Max limits
+    // Grab Times Table limits
+    const timesTableEnabled = document.getElementById("enable-times-table").checked;
+    const timesTableNum = parseInt(document.getElementById("times-table-number").value) || 6;
+    const timesTableMaxMulti = parseInt(document.getElementById("times-table-max-multiplier").value) || 12;
+
+    // Grab Generic Min/Max limits
     const limitsEnabled = document.getElementById("enable-value-limits").checked;
     const minLimitVal = parseInt(document.getElementById("min-value-limit").value);
     const maxLimitVal = parseInt(document.getElementById("max-value-limit").value);
@@ -77,7 +87,6 @@ function generateArithmeticTable() {
     const longDivision = document.getElementById("long-division-option").checked;
     const numQuestions = parseInt(document.getElementById("num-questions").value);
     
-    // 1. Parse Inputs into Arrays
     let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
     
     table.innerHTML = "";
@@ -86,33 +95,45 @@ function generateArithmeticTable() {
     for (let i = 0; i < numQuestions; i++) {
         let numbers = [];
 
-        for (let j = 0; j < numValues; j++) {
-            // A. Determine Digit Count
-            let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
-            let digitCount = numNumerals[digitIndex];
-            
-            // B. Calculate STANDARD Bounds based on digits (e.g., 10 to 99)
-            let min = Math.pow(10, digitCount - 1);
-            if (digitCount === 1) min = 1; 
-            let max = Math.pow(10, digitCount) - 1;
-            
-            // C. Apply User Limit Override ONLY to the first number (j === 0)
-            // This locks in the times tables (e.g., 6 x random_number)
-            if (limitsEnabled && j === 0) {
-                if (!isNaN(minLimitVal)) min = minLimitVal;
-                if (!isNaN(maxLimitVal)) max = maxLimitVal;
-                if (max < min) max = min; // Safety check if user types backwards
+        // --- SPECIFIC TIMES TABLE OVERRIDE ---
+        if (operation === "multiplication" && timesTableEnabled) {
+            numbers.push(timesTableNum); // Always locks the first number
+
+            // Fills the remaining numbers (usually just 1 more for a standard times table)
+            for (let j = 1; j < numValues; j++) {
+                if (j === 1) {
+                    // Generates random multiplier between 1 and the Max (e.g., 1-12)
+                    numbers.push(Math.floor(Math.random() * timesTableMaxMulti) + 1);
+                } else {
+                    numbers.push(Math.floor(Math.random() * 9) + 1); 
+                }
             }
+        } 
+        // --- STANDARD GENERATION (WITH MIN/MAX) ---
+        else {
+            for (let j = 0; j < numValues; j++) {
+                let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
+                let digitCount = numNumerals[digitIndex];
+                
+                let min = Math.pow(10, digitCount - 1);
+                if (digitCount === 1) min = 1; 
+                let max = Math.pow(10, digitCount) - 1;
+                
+                if (limitsEnabled && j === 0) {
+                    if (!isNaN(minLimitVal)) min = minLimitVal;
+                    if (!isNaN(maxLimitVal)) max = maxLimitVal;
+                    if (max < min) max = min;
+                }
 
-            // D. Generate
-            let number = Math.floor(Math.random() * (max - min + 1)) + min;
+                let number = Math.floor(Math.random() * (max - min + 1)) + min;
 
-            if (includeDecimal) {
-                let decString = (Math.random()).toFixed(decimalPlaces);
-                number = parseFloat(number + parseFloat(decString));
+                if (includeDecimal) {
+                    let decString = (Math.random()).toFixed(decimalPlaces);
+                    number = parseFloat(number + parseFloat(decString));
+                }
+
+                numbers.push(number);
             }
-
-            numbers.push(number);
         }
 
         // Operation Handling
@@ -204,15 +225,12 @@ function generateArithmeticTable() {
 }
 
 function formatTraditional(numbers, opSymbol) {
-    // 1. Find the length of the longest number
     let maxLength = Math.max(...numbers.map(n => n.toString().length));
     
-    // 2. Map numbers to padded LaTeX strings
     let padded = numbers.map(n => {
         let str = n.toString();
         let diff = maxLength - str.length;
         
-        // Manual loop to add \phantom{0} for every missing digit
         let padding = "";
         for (let k = 0; k < diff; k++) {
             padding += "\\phantom{0}";
