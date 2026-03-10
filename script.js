@@ -1,6 +1,7 @@
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", function() {
-    toggleLongDivisionOption();
+    toggleOperationOptions();
+    setupDynamicExample();
 });
 
 // --- UI Logic ---
@@ -8,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
 function toggleDecimalPlaces() {
     const isChecked = document.getElementById("include-decimal").checked;
     document.getElementById("decimal-places").disabled = !isChecked;
+    updateExample();
 }
 
 function toggleLongDivisionOption() {
@@ -24,11 +26,69 @@ function toggleLongDivisionOption() {
     }
 }
 
+function syncNumeralsWithCount() {
+    const op = document.getElementById("operation")?.value;
+    if (op === "division") return;
+    const numValuesInput = document.getElementById("num-values");
+    const numeralsInput = document.getElementById("num-numerals");
+    if (!numValuesInput || !numeralsInput) return;
+
+    const count = parseInt(numValuesInput.value, 10);
+    if (!Number.isFinite(count) || count < 2) return;
+    const parts = Array.from({ length: count }, (_, i) => String(i + 1));
+    numeralsInput.value = parts.join("x");
+    validateInputs();
+    updateExample();
+}
+
+function toggleOperationOptions() {
+    const op = document.getElementById("operation").value;
+    const timesToggle = document.querySelectorAll(".times-table-only");
+    const timesCheckbox = document.getElementById("enable-times-table");
+    const timesContainer = document.getElementById("times-table-container");
+    const numValuesInput = document.getElementById("num-values");
+    const nonDivisionGroups = document.querySelectorAll(".non-division-only");
+    const divisionGroups = document.querySelectorAll(".division-only");
+
+    if (timesToggle.length) {
+        if (op === "multiplication") {
+            timesToggle.forEach(el => el.style.display = "flex");
+        } else {
+            timesToggle.forEach(el => el.style.display = "none");
+            if (timesCheckbox) timesCheckbox.checked = false;
+            if (timesContainer) timesContainer.style.display = "none";
+        }
+    }
+
+    if (numValuesInput) {
+        if (op === "division") {
+            numValuesInput.value = 2;
+            numValuesInput.disabled = true;
+        } else {
+            numValuesInput.disabled = false;
+        }
+    }
+
+    if (nonDivisionGroups.length || divisionGroups.length) {
+        if (op === "division") {
+            nonDivisionGroups.forEach(el => el.style.display = "none");
+            divisionGroups.forEach(el => el.style.display = "flex");
+        } else {
+            nonDivisionGroups.forEach(el => el.style.display = "flex");
+            divisionGroups.forEach(el => el.style.display = "none");
+        }
+    }
+
+    toggleLongDivisionOption();
+    updateExample();
+}
+
 // Shows/hides generic Min-Max Limits
 function toggleValueLimits() {
     const isChecked = document.getElementById("enable-value-limits").checked;
     const container = document.getElementById("value-limits-container");
     container.style.display = isChecked ? "flex" : "none";
+    updateExample();
 }
 
 // Shows/hides Specific Times Table feature
@@ -36,9 +96,16 @@ function toggleTimesTable() {
     const isChecked = document.getElementById("enable-times-table").checked;
     const container = document.getElementById("times-table-container");
     container.style.display = isChecked ? "flex" : "none";
+    updateExample();
 }
 
 function validateInputs() {
+    const op = document.getElementById("operation")?.value;
+    if (op === "division") {
+        const errorSpan = document.getElementById("num-numerals-error");
+        if (errorSpan) errorSpan.textContent = "";
+        return true;
+    }
     const numeralsInput = document.getElementById("num-numerals").value;
     const numValues = parseInt(document.getElementById("num-values").value);
     const errorSpan = document.getElementById("num-numerals-error");
@@ -60,6 +127,144 @@ function validateInputs() {
     return true;
 }
 
+function setupDynamicExample() {
+    const form = document.getElementById("mathForm");
+    if (!form) return;
+
+    form.addEventListener("input", (e) => {
+        if (e.target && e.target.id === "num-values") {
+            syncNumeralsWithCount();
+            return;
+        }
+        updateExample();
+    });
+    form.addEventListener("change", (e) => {
+        if (e.target && e.target.id === "operation") {
+            toggleOperationOptions();
+            return;
+        }
+        if (e.target && e.target.id === "num-values") {
+            syncNumeralsWithCount();
+            return;
+        }
+        updateExample();
+    });
+    syncNumeralsWithCount();
+    updateExample();
+}
+
+function generateExampleQuestion() {
+    if (!validateInputs()) return null;
+
+    const operation = document.getElementById("operation").value;
+    let numValues = parseInt(document.getElementById("num-values").value);
+    let numeralsInput = document.getElementById("num-numerals")?.value || "1x1";
+
+    const timesTableEnabled = document.getElementById("enable-times-table")?.checked;
+    const timesTableNum = parseInt(document.getElementById("times-table-number")?.value) || 6;
+    const timesTableMaxMulti = parseInt(document.getElementById("times-table-max-multiplier")?.value) || 12;
+
+    const limitsEnabled = document.getElementById("enable-value-limits")?.checked;
+    const minLimitVal = parseInt(document.getElementById("min-value-limit")?.value);
+    const maxLimitVal = parseInt(document.getElementById("max-value-limit")?.value);
+
+    const includeDecimal = document.getElementById("include-decimal").checked;
+    const decimalPlaces = parseInt(document.getElementById("decimal-places").value);
+    const orientation = document.getElementById("orientation").value;
+    const longDivision = document.getElementById("long-division-option")?.checked;
+
+    if (operation === "division") {
+        const dividendDigits = parseInt(document.getElementById("dividend-digits")?.value, 10) || 2;
+        const divisorDigits = parseInt(document.getElementById("divisor-digits")?.value, 10) || 1;
+        numValues = 2;
+        numeralsInput = `${dividendDigits}x${divisorDigits}`;
+    }
+
+    let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
+    let numbers = [];
+
+    if (operation === "multiplication" && timesTableEnabled) {
+        numbers.push(timesTableNum);
+        for (let j = 1; j < numValues; j++) {
+            if (j === 1) {
+                numbers.push(Math.floor(Math.random() * timesTableMaxMulti) + 1);
+            } else {
+                numbers.push(Math.floor(Math.random() * 9) + 1);
+            }
+        }
+    } else {
+        for (let j = 0; j < numValues; j++) {
+            let digitIndex = (j < numNumerals.length) ? j : numNumerals.length - 1;
+            let digitCount = numNumerals[digitIndex];
+            let min = Math.pow(10, digitCount - 1);
+            if (digitCount === 1) min = 1;
+            let max = Math.pow(10, digitCount) - 1;
+
+            if (limitsEnabled && j === 0) {
+                if (!isNaN(minLimitVal)) min = minLimitVal;
+                if (!isNaN(maxLimitVal)) max = maxLimitVal;
+                if (max < min) max = min;
+            }
+
+            let number = Math.floor(Math.random() * (max - min + 1)) + min;
+            if (includeDecimal) {
+                let decString = (Math.random()).toFixed(decimalPlaces);
+                number = parseFloat(number + parseFloat(decString));
+            }
+            numbers.push(number);
+        }
+    }
+
+    if (operation === "division") {
+        numbers.sort((a, b) => b - a);
+        if (!includeDecimal) {
+            if (numbers[1] === 0) numbers[1] = 1;
+            let remainder = numbers[0] % numbers[1];
+            numbers[0] = numbers[0] - remainder;
+            if (numbers[0] === 0) numbers[0] = numbers[1] * 2;
+        }
+    } else if (operation === "subtraction") {
+        numbers.sort((a, b) => b - a);
+    }
+
+    switch (operation) {
+        case "addition":
+            return orientation === "traditional"
+                ? formatTraditional(numbers, "+")
+                : `\\(${numbers.join(" + ")}\\)`;
+        case "subtraction":
+            return orientation === "traditional"
+                ? formatTraditional(numbers, "-")
+                : `\\(${numbers.join(" - ")}\\)`;
+        case "multiplication":
+            return orientation === "traditional"
+                ? formatTraditional(numbers, "\\times")
+                : `\\(${numbers.join(" \\times ")}\\)`;
+        case "division":
+            if (longDivision) {
+                return `\\[ ${numbers[1]} \\enclose{longdiv}{${numbers[0]}} \\]`;
+            }
+            return `\\(${numbers[0]} \\div ${numbers[1]} = \\)`;
+        default:
+            return null;
+    }
+}
+
+function updateExample() {
+    const box = document.getElementById("live-example-math");
+    if (!box) return;
+
+    const example = generateExampleQuestion();
+    if (!example) {
+        box.textContent = "Fix the digits format to see an example.";
+        return;
+    }
+    box.innerHTML = example;
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        MathJax.typesetPromise();
+    }
+}
+
 // --- Core Generation Logic ---
 
 function generateArithmeticTable() {
@@ -67,9 +272,8 @@ function generateArithmeticTable() {
 
     const table = document.getElementById("arithmetic-table");
     const operation = document.getElementById("operation").value;
-    const numValues = parseInt(document.getElementById("num-values").value);
-    
-    const numeralsInput = document.getElementById("num-numerals").value;
+    let numValues = parseInt(document.getElementById("num-values").value);
+    let numeralsInput = document.getElementById("num-numerals")?.value || "1x1";
     
     // Grab Times Table limits
     const timesTableEnabled = document.getElementById("enable-times-table").checked;
@@ -87,6 +291,13 @@ function generateArithmeticTable() {
     const longDivision = document.getElementById("long-division-option").checked;
     const numQuestions = parseInt(document.getElementById("num-questions").value);
     
+    if (operation === "division") {
+        const dividendDigits = parseInt(document.getElementById("dividend-digits")?.value, 10) || 2;
+        const divisorDigits = parseInt(document.getElementById("divisor-digits")?.value, 10) || 1;
+        numValues = 2;
+        numeralsInput = `${dividendDigits}x${divisorDigits}`;
+    }
+
     let numNumerals = numeralsInput.toLowerCase().split("x").map(item => parseInt(item.trim(), 10));
     
     table.innerHTML = "";

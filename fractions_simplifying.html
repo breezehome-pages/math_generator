@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplifying Fractions</title>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --border: #cbd5e1;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: #1f2937;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .no-print { display: block; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+        }
+
+        .btn-home {
+            background-color: #475569;
+            color: white;
+            padding: 8px 14px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        h1 { text-align: center; color: var(--primary); margin: 18px 0; }
+
+        .form-container {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #fff7ed;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        label { font-weight: 700; }
+
+        input[type="number"] {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 200px;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #generate-btn { background-color: #16a34a; }
+        #answer-key-btn { background-color: #f59e0b; }
+        #print-btn { background-color: #3b82f6; }
+
+        #problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .problem-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            min-height: 120px;
+        }
+
+        .problem-number { font-weight: 700; margin-bottom: 8px; }
+
+        @media (max-width: 800px) {
+            #problem-grid { grid-template-columns: 1fr; }
+            input[type="number"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Simplifying Fractions</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="max-denominator">Max denominator:</label>
+                <input type="number" id="max-denominator" min="2" max="20" value="12">
+            </div>
+            <div class="form-group">
+                <label for="max-factor">Max factor:</label>
+                <input type="number" id="max-factor" min="2" max="6" value="4">
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script>
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function gcd(a, b) {
+            while (b !== 0) {
+                const temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        function generateProblems() {
+            const maxDen = parseInt(document.getElementById('max-denominator').value, 10);
+            const maxFactor = parseInt(document.getElementById('max-factor').value, 10);
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+
+            const problems = [];
+            const grid = document.getElementById('problem-grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < count; i++) {
+                const baseDen = randInt(2, maxDen);
+                const baseNum = randInt(1, baseDen - 1);
+                const factor = randInt(2, maxFactor);
+                const numerator = baseNum * factor;
+                const denominator = baseDen * factor;
+
+                const questionLatex = `\\(\\frac{${numerator}}{${denominator}}\\)`;
+                const answerLatex = `\\(\\frac{${baseNum}}{${baseDen}}\\)`;
+
+                problems.push({ questionLatex, answerLatex });
+            }
+
+            sessionStorage.setItem('fraction_simplify_answers', JSON.stringify(problems));
+
+            problems.forEach((p, index) => {
+                const card = document.createElement('div');
+                card.className = 'problem-card';
+                card.innerHTML = `<div class="problem-number">${index + 1}.</div><div>${p.questionLatex}</div>`;
+                grid.appendChild(card);
+            });
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('fraction_simplify_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+            const problems = JSON.parse(data);
+            let html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>Answer Key</title>\n<style>\nbody{font-family:sans-serif;padding:24px}\nh1{text-align:center;color:#1e40af}\n.item{margin-bottom:14px}\n</style>\n</head>\n<body>\n<h1>Answer Key</h1>\n`;
+            problems.forEach((p, i) => {
+                html += `<div class=\"item\"><strong>${i + 1}.</strong> ${p.questionLatex} = ${p.answerLatex}</div>`;
+            });
+            html += `</body>\n</html>`;
+            const win = window.open('', '_blank');
+            if (!win) return;
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
+            const cfg = win.document.createElement('script');
+            cfg.textContent = `window.MathJax = { tex: { inlineMath: [['$','$'], ['\\\\(','\\\\)']] }, svg: { fontCache: 'global' } };`;
+            win.document.head.appendChild(cfg);
+            const mj = win.document.createElement('script');
+            mj.async = true;
+            mj.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+            mj.onload = () => {
+                if (win.MathJax) {
+                    win.MathJax.typesetPromise();
+                }
+            };
+            win.document.head.appendChild(mj);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>

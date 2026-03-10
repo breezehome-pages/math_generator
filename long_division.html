@@ -145,13 +145,14 @@
         .btn-start { background-color: var(--btn-green); }
         .btn-next { background-color: var(--btn-blue); }
         .btn-new { background-color: var(--btn-orange); }
+        .btn-prev { background-color: #64748b; }
         .example-modal {
             position: absolute;
             top: -12px;
             left: 50%;
             transform: translate(-50%, -100%);
             width: min(520px, 90%);
-            height: 340px;
+            height: 460px;
             background: #ffffff;
             border: 2px solid #3b82f6;
             border-radius: 10px;
@@ -181,7 +182,7 @@
             border-radius: 8px;
             padding: 8px;
             flex: 1;
-            overflow: auto;
+            overflow: hidden;
         }
         .example-step-count {
             color: #64748b;
@@ -192,6 +193,16 @@
             padding-top: 8px;
             color: #334155;
             font-size: 0.95rem;
+        }
+        .example-answer-text {
+            color: #1e3a8a;
+            font-weight: 700;
+            font-size: 0.98rem;
+        }
+        .modal-button-row {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
         .example-modal-close {
             background: #e2e8f0;
@@ -318,23 +329,37 @@
         <div class="subtitle">Step by step practice for students learning long division for the first time.</div>
 
         <div class="section">
+            <h2>Parts of Long Division</h2>
+            <div class="example-problem">
+                \[
+                \begin{array}{rcl}
+                \text{Quotient} & \longrightarrow & 21 \\
+                \text{Divisor} & \longrightarrow & 4\enclose{longdiv}{84} \\
+                & & \uparrow \\
+                & & \text{Dividend}
+                \end{array}
+                \]
+            </div>
+        </div>
+
+        <div class="section">
             <h2>Steps</h2>
             <div class="steps">
                 <div class="step-card">
                     <div class="step-title">1. Divide</div>
-                    <div>Ask how many times the divisor fits into the first part of the dividend.</div>
+                    <div>Ask how many times the divisor fits into the number you are looking at.</div>
                 </div>
                 <div class="step-card">
                     <div class="step-title">2. Multiply</div>
-                    <div>Multiply the divisor by the number you just wrote on top.</div>
+                    <div>Multiply and write the answer underneath.</div>
                 </div>
                 <div class="step-card">
                     <div class="step-title">3. Subtract</div>
-                    <div>Subtract to see what is left.</div>
+                    <div>Subtract to find what is left.</div>
                 </div>
                 <div class="step-card">
                     <div class="step-title">4. Bring down</div>
-                    <div>Bring down the next digit and repeat.</div>
+                    <div>Bring down the next digit and repeat the steps.</div>
                 </div>
             </div>
         </div>
@@ -352,15 +377,19 @@
                         <div class="example-modal-math" id="example-modal-math">Click Start solving to begin.</div>
                         <div class="example-step-count" id="example-step-count">Step 0 of 0</div>
                         <div class="example-step-text" id="example-step-text">Step text will appear here.</div>
+                        <div class="example-answer-text" id="example-answer-text"></div>
+                        <div class="modal-button-row">
+                            <button type="button" class="btn-prev" id="example-prev-btn">Previous step</button>
+                            <button type="button" class="btn-next" id="example-next-btn">Next step</button>
+                            <button type="button" class="btn-new" id="example-new-btn">New example</button>
+                        </div>
                     </div>
                 </div>
                 <div class="example-problem" id="example-problem">\[ 4 \enclose{longdiv}{84} \]</div>
                 <div class="example-steps">
-                    <div id="example-summary">Use the buttons to step through the solution without shifting the page layout.</div>
+                    <div id="example-summary">Click Start solving, then use the buttons to see one tiny step at a time.</div>
                     <div class="example-controls">
                         <button type="button" class="btn-start" id="example-start-btn">Start solving</button>
-                        <button type="button" class="btn-next" id="example-next-btn">Next step</button>
-                        <button type="button" class="btn-new" id="example-new-btn">New example</button>
                     </div>
                 </div>
             </div>
@@ -408,6 +437,16 @@
     <script>
         function randInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function escapeLatexText(text) {
+            return text
+                .replace(/\\/g, '\\\\textbackslash{}')
+                .replace(/([#%&_$])/g, '\\\\$1')
+                .replace(/\{/g, '\\\\{')
+                .replace(/\}/g, '\\\\}')
+                .replace(/\^/g, '\\\\textasciicircum{}')
+                .replace(/~/g, '\\\\textasciitilde{}');
         }
 
         const exampleState = {
@@ -516,7 +555,7 @@
             }
 
             lines.push(quotientLine);
-            lines.push(`${data.divisorStr}\\overline{)${data.dividendStr}}`);
+            lines.push(`${data.divisorStr}\\enclose{longdiv}{${data.dividendStr}}`);
 
             const lastStep = typeof stepIndex === 'number' ? Math.min(stepIndex, totalSteps - 1) : totalSteps - 1;
             for (let i = 0; i <= lastStep; i++) {
@@ -539,33 +578,40 @@
             const dividendLength = data.dividendStr.length;
             const workLines = [];
             const workText = [];
+            const lineMeta = [];
 
-            data.steps.forEach((step) => {
-                const workingLine = lineWithPad(String(step.workingNumber), step.endIndex, dividendLength);
+            data.steps.forEach((step, index) => {
                 const productPad = rightPadForEndIndex(step.endIndex, dividendLength);
                 const productLine = `\\underline{${step.stepProduct}}${productPad}`;
                 const remainderLine = lineWithPad(String(step.stepRemainder), step.endIndex, dividendLength);
 
-                workLines.push(workingLine);
-                workText.push(`Divide ${step.workingNumber} by ${data.divisorStr} to get ${step.stepQuotient}.`);
-
                 workLines.push(productLine);
-                workText.push(`Multiply: ${step.stepQuotient} x ${data.divisorStr} = ${step.stepProduct}.`);
+                workText.push(`How many ${data.divisorStr}s fit in ${step.workingNumber}? Write ${step.stepQuotient} on top. Multiply: ${step.stepQuotient} x ${data.divisorStr} = ${step.stepProduct}.`);
+                lineMeta.push(index);
 
                 workLines.push(remainderLine);
-                workText.push(`Subtract: ${step.workingNumber} - ${step.stepProduct} = ${step.stepRemainder}.`);
+                workText.push(`Subtract to see what is left: ${step.workingNumber} - ${step.stepProduct} = ${step.stepRemainder}.`);
+                lineMeta.push(index);
+
+                if (index < data.steps.length - 1) {
+                    const nextStep = data.steps[index + 1];
+                    const bringDownLine = lineWithPad(String(nextStep.workingNumber), nextStep.endIndex, dividendLength);
+                    workLines.push(bringDownLine);
+                    workText.push(`Bring down the next digit ${nextStep.digitBrought} to make ${nextStep.workingNumber}.`);
+                    lineMeta.push(index);
+                }
             });
 
             const stepsLatex = [];
             for (let i = 0; i < workLines.length; i++) {
-                const completedSteps = Math.min(Math.floor(i / 3) + 1, data.steps.length);
+                const completedSteps = Math.min(lineMeta[i] + 1, data.steps.length);
                 const shownQuotient = data.quotientStr.slice(0, completedSteps);
                 const quotientPad = '\\phantom{0}'.repeat(Math.max(0, data.quotientStr.length - shownQuotient.length));
                 const quotientLine = `${shownQuotient}${quotientPad}`;
 
                 const lines = [
                     quotientLine,
-                    `${data.divisorStr}\\overline{)${data.dividendStr}}`,
+                    `${data.divisorStr}\\enclose{longdiv}{${data.dividendStr}}`,
                     ...workLines.slice(0, i + 1)
                 ];
                 stepsLatex.push(`\\begin{array}{r} ${lines.join(' \\\\ ')} \\end{array}`);
@@ -584,28 +630,45 @@
             const mathEl = document.getElementById('example-modal-math');
             const countEl = document.getElementById('example-step-count');
             const textEl = document.getElementById('example-step-text');
+            const answerEl = document.getElementById('example-answer-text');
 
             if (!exampleState.problem) {
                 titleEl.textContent = 'Step 1';
                 mathEl.textContent = 'Click Start solving to begin.';
                 countEl.textContent = 'Step 0 of 0';
-                textEl.textContent = 'Step text will appear here.';
+                textEl.innerHTML = '\\(\\text{Step text will appear here.}\\)';
+                answerEl.innerHTML = '';
                 return;
             }
 
             const total = exampleState.stepsLatex.length;
             if (exampleState.stepIndex < 0) {
                 titleEl.textContent = 'Step 1';
-                mathEl.textContent = 'Click Start solving to begin.';
+                if (exampleState.problem) {
+                    mathEl.innerHTML = `\\[ ${exampleState.problem.divisor} \\enclose{longdiv}{${exampleState.problem.dividend}} \\]`;
+                } else {
+                    mathEl.textContent = 'Click Start solving to begin.';
+                }
                 countEl.textContent = `Step 0 of ${total}`;
-                textEl.textContent = 'Click Start solving to begin.';
+                textEl.innerHTML = '\\(\\text{Click Next step to begin.}\\)';
+                answerEl.innerHTML = '';
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    MathJax.typesetPromise();
+                }
                 return;
             }
 
             titleEl.textContent = `Step ${exampleState.stepIndex + 1}`;
             mathEl.innerHTML = `\\[ ${exampleState.stepsLatex[exampleState.stepIndex]} \\]`;
             countEl.textContent = `Step ${exampleState.stepIndex + 1} of ${total}`;
-            textEl.textContent = exampleState.stepsText[exampleState.stepIndex] || '';
+            const rawText = exampleState.stepsText[exampleState.stepIndex] || '';
+            const latexText = escapeLatexText(rawText);
+            textEl.innerHTML = `\\(\\text{${latexText}}\\)`;
+            if (exampleState.stepIndex >= total - 1 && exampleState.problem) {
+                answerEl.innerHTML = `\\(\\text{Answer: } ${exampleState.problem.quotient}\\)`;
+            } else {
+                answerEl.innerHTML = '';
+            }
             if (window.MathJax && window.MathJax.typesetPromise) {
                 MathJax.typesetPromise();
             }
@@ -613,9 +676,11 @@
 
         function updateExampleButtons() {
             const nextBtn = document.getElementById('example-next-btn');
+            const prevBtn = document.getElementById('example-prev-btn');
             const hasSteps = exampleState.stepsLatex.length > 0;
             const atEnd = hasSteps && exampleState.stepIndex >= exampleState.stepsLatex.length - 1;
-            nextBtn.disabled = !hasSteps || exampleState.stepIndex < 0 || atEnd;
+            nextBtn.disabled = !hasSteps || atEnd;
+            prevBtn.disabled = !hasSteps || exampleState.stepIndex <= -1;
         }
 
         function showExampleModal(show) {
@@ -640,19 +705,30 @@
             if (!exampleState.problem) {
                 setNewExample();
             }
-            exampleState.stepIndex = 0;
+            exampleState.stepIndex = -1;
             updateExampleModal();
             updateExampleButtons();
             showExampleModal(true);
         }
 
         function nextExampleStep() {
-            if (!exampleState.problem || exampleState.stepIndex < 0) {
-                startExample();
-                return;
+            if (!exampleState.problem) {
+                setNewExample();
             }
             if (exampleState.stepIndex < exampleState.stepsLatex.length - 1) {
                 exampleState.stepIndex += 1;
+            }
+            updateExampleModal();
+            updateExampleButtons();
+            showExampleModal(true);
+        }
+
+        function previousExampleStep() {
+            if (!exampleState.problem) {
+                return;
+            }
+            if (exampleState.stepIndex > -1) {
+                exampleState.stepIndex -= 1;
             }
             updateExampleModal();
             updateExampleButtons();
@@ -723,38 +799,45 @@
                 return;
             }
             const problems = JSON.parse(data);
-            let html = '<html><head><title>Answer Key</title>';
-            html += '<script>window.MathJax={loader:{load:[\"[tex]/enclose\"]},tex:{inlineMath:[[\"$\",\"$\"],[\"\\\\(\",\"\\\\)\"]],displayMath:[[\"$$\",\"$$\"],[\"\\\\[\",\"\\\\]\"]],packages:{\"[+]\": [\"enclose\"]}},svg:{fontCache:\"global\"}};<\\/script>';
-            html += '<script async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"><\\/script>';
-            html += '<style>body{font-family:sans-serif;padding:30px}h1{text-align:center;color:#1e40af}.question{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:18px}';
-            html += '.question-title{font-weight:700;margin-bottom:8px}.solution{margin-top:10px}';
-            html += '@media print{.question{page-break-inside:avoid}}</style></head><body>';
-            html += '<h1>Answer Key</h1>';
+            let html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>Answer Key</title>\n<style>\nbody{font-family:sans-serif;padding:30px}\nh1{text-align:center;color:#1e40af}\n.question{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:18px}\n.question-title{font-weight:700;margin-bottom:8px}\n.solution{margin-top:10px}\n@media print{.question{page-break-inside:avoid}}\n</style>\n</head>\n<body>\n<h1>Answer Key</h1>\n`;
             problems.forEach((p, i) => {
                 const answer = p.remainder === 0 ? `${p.quotient}` : `${p.quotient} R ${p.remainder}`;
                 const solutionLatex = buildLongDivisionLatex(p.dividend, p.divisor, null);
                 html += `<div class=\"question\">`;
                 html += `<div class=\"question-title\">Question ${i + 1}</div>`;
-                html += `<div>Problem: \\(${p.divisor} \\enclose{longdiv}{${p.dividend}}\\)</div>`;
-                html += `<div class=\"solution\">Solution: \\[
-${solutionLatex}
-\\]</div>`;
-                html += `<div>Final Answer: ${answer}</div>`;
+                html += `<div>Problem: \\\\(${p.divisor} \\\\enclose{longdiv}{${p.dividend}}\\\\)</div>`;
+                html += `<div class=\"solution\">Solution: \\\\[${solutionLatex}\\\\]</div>`;
+                html += `<div>Final Answer: \\\\(${answer}\\\\)</div>`;
                 html += `</div>`;
             });
-            html += '</body></html>';
+            html += `</body>\n</html>`;
             const win = window.open('', '_blank');
+            if (!win) return;
+            win.document.open();
             win.document.write(html);
             win.document.close();
+            const cfg = win.document.createElement('script');
+            cfg.textContent = `window.MathJax = {\n  loader: { load: ['[tex]/enclose'] },\n  tex: {\n    inlineMath: [['$','$'], ['\\\\(','\\\\)']],\n    displayMath: [['$$','$$'], ['\\\\[','\\\\]']],\n    packages: { '[+]': ['enclose'] }\n  },\n  svg: { fontCache: 'global' }\n};`;
+            win.document.head.appendChild(cfg);
+            const mj = win.document.createElement('script');
+            mj.async = true;
+            mj.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+            mj.onload = () => {
+                if (win.MathJax) {
+                    win.MathJax.typesetPromise();
+                }
+            };
+            win.document.head.appendChild(mj);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             setNewExample();
             document.getElementById('example-start-btn').addEventListener('click', startExample);
+            document.getElementById('example-prev-btn').addEventListener('click', previousExampleStep);
             document.getElementById('example-next-btn').addEventListener('click', nextExampleStep);
             document.getElementById('example-new-btn').addEventListener('click', () => {
                 setNewExample();
-                showExampleModal(false);
+                showExampleModal(true);
             });
             document.getElementById('example-modal-close').addEventListener('click', () => {
                 showExampleModal(false);

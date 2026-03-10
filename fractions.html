@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractions Practice</title>
+    <style>
+        body {
+            padding: 0.75cm;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 18px;
+            background-color: #f8fafc;
+            color: #333;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            border: 2px solid #2c7a7b;
+        }
+
+        h1 {
+            color: #1f2937;
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 20px;
+        }
+
+        .btn-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            transition: 0.2s;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-convert { background-color: #2563eb; }
+        .btn-equivalent { background-color: #0f766e; }
+        .btn-simplify { background-color: #f59e0b; }
+        .btn-add { background-color: #7c3aed; }
+
+        .btn-home {
+            display: inline-block;
+            margin-bottom: 16px;
+            background-color: #475569;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-home">Home</a>
+        <h1>Fractions Practice</h1>
+        <p class="description">Choose a unit to practice. Each page includes a generator, answer key, and print view.</p>
+
+        <div class="btn-container">
+            <a href="fractions_converting.html" class="btn btn-convert">Converting Fractions</a>
+            <a href="fractions_equivalent.html" class="btn btn-equivalent">Equivalent Fractions</a>
+            <a href="fractions_simplifying.html" class="btn btn-simplify">Simplifying Fractions</a>
+            <a href="fractions_addition.html" class="btn btn-add">Fraction Addition</a>
+        </div>
+    </div>
+</body>
+</html>

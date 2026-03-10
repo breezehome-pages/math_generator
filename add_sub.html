@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Addition and Subtraction Practice</title>
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            loader: {load: ['[tex]/enclose']},
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                packages: {'[+]': ['enclose']}
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --light-blue-bg: #eaf4fc;
+            --border-blue: #cbd5e1;
+            --btn-orange: #f59e0b;
+            --btn-green: #4caf50;
+            --btn-blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Screen-only elements */
+        .no-print {
+            display: block;
+        }
+
+        /* Print styling */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; padding: 0; }
+            .container { max-width: 100%; margin: 0; }
+            #arithmetic-table { width: 100%; }
+            td { padding: 1cm 0.5cm !important; }
+            .form-container { display: none; }
+        }
+
+        /* Home Button */
+        .btn-home {
+            background-color: var(--btn-orange);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-blue);
+            font-size: 2.5rem;
+            margin: 20px 0 30px 0;
+        }
+
+        /* Main Form Container */
+        .form-container {
+            background: #ffffff;
+            border: 2px solid #3b82f6;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            background-color: var(--light-blue-bg);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Nested options styling */
+        .nested-options {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        label {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"], 
+        input[type="number"], 
+        select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-blue);
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 200px;
+            outline: none;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        /* Buttons Area */
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+
+        #generate-btn { background-color: var(--btn-green); }
+        #answer-key-btn { background-color: var(--btn-orange); }
+        #print-btn { background-color: var(--btn-blue); }
+
+        /* Tooltips */
+        .help-tip {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 20px;
+            height: 20px;
+            background-color: #93c5fd;
+            color: white;
+            border-radius: 50%;
+            margin-left: 8px;
+            font-size: 14px;
+            cursor: help;
+            position: relative;
+        }
+
+        .help-tip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .error {
+            color: #dc2626;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        /* Output Table */
+        #arithmetic-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        #arithmetic-table td {
+            vertical-align: top;
+            padding: 20px;
+            text-align: left;
+            font-size: 18pt;
+            width: 33%;
+        }
+
+        .question-box {
+            margin-bottom: 20px;
+        }
+
+        .times-table-only {
+            display: none !important;
+        }
+
+        #live-example-panel {
+            position: fixed;
+            right: 20px;
+            top: 120px;
+            width: 320px;
+            max-width: 40vw;
+            background: #ffffff;
+            border: 2px solid #93c5fd;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            z-index: 50;
+        }
+
+        #live-example-panel h2 {
+            margin: 0 0 10px 0;
+            color: #1e40af;
+            font-size: 1.2rem;
+        }
+
+        @media print {
+            #live-example-panel { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 20px;">
+            <a href="index.html" class="btn-home">Home</a>
+        </div>
+
+        <h1 class="no-print">Addition and Subtraction Practice</h1>
+
+        <div class="form-container no-print">
+            <form id="mathForm">
+                
+                <div class="form-group">
+                    <label>Choose an operation:</label>
+                    <select id="operation" onchange="toggleLongDivisionOption()">
+                        <option value="addition">Addition (+)</option>
+                        <option value="subtraction">Subtraction (-)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        How many numbers in each problem?
+                        <span class="help-tip" data-tooltip="Choose 2, 3, 4, or 5 numbers">?</span>
+                    </label>
+                    <input type="number" id="num-values" min="2" max="5" value="2" onchange="validateInputs()">
+                </div>
+
+                <div class="form-group" style="flex-direction: column; align-items: stretch;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <label>
+                            How many digits in each number?
+                            <span class="help-tip" data-tooltip="Example: 3x2 means a 3-digit number and a 2-digit number">?</span>
+                        </label>
+                        <div>
+                            <input type="text" id="num-numerals" value="1x1" oninput="validateInputs()">
+                            <span id="num-numerals-error" class="error"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="nested-options times-table-only">
+                        <label style="font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" id="enable-times-table" onchange="toggleTimesTable()"> 
+                            Practice a specific times table
+                        </label>
+                    </div>
+                    
+                    <div id="times-table-container" class="nested-options times-table-only" style="display: none; border-top: none; padding-top: 5px; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px; font-weight: normal;">
+                                Times table for:
+                                <span class="help-tip" data-tooltip="e.g. Type '6' for the 6 times table">?</span>
+                            </label>
+                            <input type="number" id="times-table-number" value="6">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px; font-weight: normal;">
+                                Up to what multiplier?
+                                <span class="help-tip" data-tooltip="Usually up to 12 (e.g. 6 × 12)">?</span>
+                            </label>
+                            <input type="number" id="times-table-max-multiplier" value="12">
+                        </div>
+                    </div>
+
+                    <div class="nested-options">
+                        <label style="font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" id="enable-value-limits" onchange="toggleValueLimits()"> 
+                            Pick smallest and biggest numbers
+                        </label>
+                    </div>
+                    
+                    <div id="value-limits-container" class="nested-options" style="display: none; border-top: none; padding-top: 5px; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px; font-weight: normal;">Smallest number:</label>
+                            <input type="number" id="min-value-limit" value="1">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <label style="padding-left: 30px; font-weight: normal;">Biggest number:</label>
+                            <input type="number" id="max-value-limit" value="99">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="cursor: pointer;">
+                        <div style="display:flex; align-items:center;">
+                            <input type="checkbox" id="include-decimal" onchange="toggleDecimalPlaces()"> 
+                            Use decimals (like 1.5)
+                        </div>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>How many decimal places?</label>
+                    <select id="decimal-places" disabled>
+                        <option value="1">1 decimal place</option>
+                        <option value="2" selected>2 decimal places</option>
+                        <option value="3">3 decimal places</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>How many questions?</label>
+                    <input type="number" id="num-questions" min="1" max="50" value="9">
+                </div>
+
+                <div class="form-group">
+                    <label>How should problems look?</label>
+                    <select id="orientation">
+                        <option value="traditional">Stacked</option>
+                        <option value="inline">Inline</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="long-division-container" style="display:none;">
+                    <label style="cursor: pointer;">
+                        <div style="display:flex; align-items:center;">
+                            <input type="checkbox" id="long-division-option"> 
+                            Format as Long Division
+                        </div>
+                    </label>
+                </div>
+
+                <div class="button-row">
+                    <button type="button" id="generate-btn" onclick="generateArithmeticTable()">Generate</button>
+                    <button type="button" id="answer-key-btn" onclick="generateAnswerKey()">Answer Key</button>
+                    <button type="button" id="print-btn" onclick="window.print()">Print</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="print-header" style="display:none;">
+            <h2>Name: ____________________ Date: ___________</h2>
+        </div>
+        <table id="arithmetic-table">
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="live-example-panel" class="no-print">
+        <h2>Live Example</h2>
+        <div id="live-example-math">Loading example...</div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
