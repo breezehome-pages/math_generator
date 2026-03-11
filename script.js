@@ -461,6 +461,149 @@ function formatTraditional(numbers, opSymbol) {
     return `\\[ \\begin{array}{r} ${content} \\end{array} \\]`;
 }
 
+function computeLongDivisionSteps(dividend, divisor) {
+    const dividendStr = String(dividend);
+    const divisorNum = divisor;
+    const steps = [];
+    const quotientDigits = [];
+    let current = 0;
+    let started = false;
+
+    for (let i = 0; i < dividendStr.length; i++) {
+        current = (current * 10) + parseInt(dividendStr[i], 10);
+
+        if (!started && current < divisorNum && i < dividendStr.length - 1) {
+            continue;
+        }
+
+        const stepQuotient = Math.floor(current / divisorNum);
+        const stepProduct = stepQuotient * divisorNum;
+        const stepRemainder = current - stepProduct;
+
+        steps.push({
+            endIndex: i,
+            workingNumber: current,
+            stepQuotient,
+            stepProduct,
+            stepRemainder,
+            digitBrought: dividendStr[i]
+        });
+
+        quotientDigits.push(stepQuotient);
+        started = true;
+        current = stepRemainder;
+    }
+
+    if (!started) {
+        steps.push({
+            endIndex: dividendStr.length - 1,
+            workingNumber: dividend,
+            stepQuotient: 0,
+            stepProduct: 0,
+            stepRemainder: dividend,
+            digitBrought: dividendStr[dividendStr.length - 1]
+        });
+        quotientDigits.push(0);
+    }
+
+    return {
+        dividendStr,
+        divisorStr: String(divisorNum),
+        quotientStr: quotientDigits.join(''),
+        steps
+    };
+}
+
+function rightPadForEndIndex(endIndex, dividendLength) {
+    const padCount = dividendLength - 1 - endIndex;
+    return '\\phantom{0}'.repeat(Math.max(0, padCount));
+}
+
+function lineWithPad(valueStr, endIndex, dividendLength) {
+    return `${valueStr}${rightPadForEndIndex(endIndex, dividendLength)}`;
+}
+
+function buildLongDivisionLatex(dividend, divisor) {
+    const data = computeLongDivisionSteps(dividend, divisor);
+    const dividendLength = data.dividendStr.length;
+    const lines = [];
+    const totalSteps = data.steps.length;
+
+    lines.push(data.quotientStr || '0');
+    lines.push(`${data.divisorStr}\\enclose{longdiv}{${data.dividendStr}}`);
+
+    for (let i = 0; i < totalSteps; i++) {
+        const step = data.steps[i];
+        const workingLine = lineWithPad(String(step.workingNumber), step.endIndex, dividendLength);
+        lines.push(workingLine);
+
+        const productPad = rightPadForEndIndex(step.endIndex, dividendLength);
+        lines.push(`\\underline{${step.stepProduct}}${productPad}`);
+
+        const remainderLine = lineWithPad(String(step.stepRemainder), step.endIndex, dividendLength);
+        lines.push(remainderLine);
+    }
+
+    const remainder = data.steps[totalSteps - 1].stepRemainder;
+    lines.push(`\\mathrm{R}\\ ${remainder}`);
+
+    return {
+        latex: `\\begin{array}{r} ${lines.join(' \\\\ ')} \\end{array}`,
+        remainder,
+        quotient: Math.floor(dividend / divisor)
+    };
+}
+
+function buildMultiplicationLatex(numbers) {
+    if (!numbers || numbers.length === 0) {
+        return "\\text{No problem}";
+    }
+
+    const hasDecimal = numbers.some(n => !Number.isInteger(n));
+    if (numbers.length !== 2 || hasDecimal) {
+        const result = numbers.reduce((a, b) => a * b, 1);
+        return `\\begin{array}{l} ${numbers.join(" \\times ")} = ${result} \\end{array}`;
+    }
+
+    const multiplicand = numbers[0];
+    const multiplier = numbers[1];
+    const multiplicandStr = String(multiplicand);
+    const multiplierStr = String(multiplier);
+    const partialProducts = [];
+
+    for (let i = multiplierStr.length - 1; i >= 0; i--) {
+        const digit = parseInt(multiplierStr[i], 10);
+        const product = digit * multiplicand;
+        const zeros = '0'.repeat(multiplierStr.length - 1 - i);
+        partialProducts.push({
+            digit,
+            product,
+            shifted: `${product}${zeros}`,
+            position: multiplierStr.length - 1 - i
+        });
+    }
+
+    let latexOutput = `\\begin{array}{r}`;
+    latexOutput += ` ${multiplicandStr} \\\\`;
+    latexOutput += ` \\underline{\\times\\ ${multiplierStr}} \\\\`;
+
+    if (partialProducts.length > 1) {
+        partialProducts.forEach(pp => {
+            if (pp.digit !== 0) {
+                const spaces = '\\phantom{0}'.repeat(pp.position);
+                latexOutput += ` ${pp.product}${spaces} \\\\`;
+            }
+        });
+        latexOutput += ` \\hline`;
+        latexOutput += ` ${multiplicand * multiplier}`;
+    } else {
+        latexOutput += ` ${multiplicand * multiplier}`;
+    }
+
+    latexOutput += ` \\end{array}`;
+    return latexOutput;
+}
+
 function generateAnswerKey() {
     const data = sessionStorage.getItem("math_answers");
     if (!data) {
@@ -468,7 +611,7 @@ function generateAnswerKey() {
         return;
     }
     const questions = JSON.parse(data);
-    let html = `<html><head><title>Answer Key</title><style>body{font-family:sans-serif;padding:30px}.key-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.key-item{border:1px solid #ddd;padding:15px;border-radius:5px;page-break-inside:avoid}h1{text-align:center;color:#1e40af}</style><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"><\/script><script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"><\/script></head><body><h1>Answer Key</h1><div class="key-grid">`;
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Answer Key</title><style>body{font-family:sans-serif;padding:30px}.key-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.key-item{border:1px solid #ddd;padding:15px;border-radius:5px;page-break-inside:avoid}h1{text-align:center;color:#1e40af}.solution{margin-top:8px}.answer{margin-top:6px;font-weight:bold}</style></head><body><h1>Answer Key</h1><div class="key-grid">`;
     function getSymbol(op) {
         if(op === 'addition') return ' + ';
         if(op === 'subtraction') return ' - ';
@@ -478,10 +621,48 @@ function generateAnswerKey() {
     }
     questions.forEach((q, i) => {
         let prob = q.numbers.join(getSymbol(q.operation));
-        html += `<div class="key-item"><strong>${i+1}.</strong> Answer: <b>${q.answer}</b><br><small style="color:#666">Problem: ${prob}</small></div>`;
+        let problemLine = q.questionLatex ? q.questionLatex : `\\(${prob}\\)`;
+        if (q.operation === 'multiplication') {
+            const solutionLatex = buildMultiplicationLatex(q.numbers);
+            html += `<div class="key-item"><strong>${i+1}.</strong><div class="problem">Problem: ${problemLine}</div><div class="solution">Solution: $$${solutionLatex}$$</div><div class="answer">Final Answer: ${q.answer}</div></div>`;
+        } else if (q.operation === 'division') {
+            const dividend = q.numbers[0];
+            const divisor = q.numbers[1];
+            const useLongDivision = Number.isInteger(dividend) && Number.isInteger(divisor) && divisor !== 0;
+            if (useLongDivision) {
+                const solution = buildLongDivisionLatex(dividend, divisor);
+                html += `<div class="key-item"><strong>${i+1}.</strong><div class="problem">Problem: ${problemLine}</div><div class="solution">Solution: $$${solution.latex}$$</div><div class="answer">Final Answer: ${solution.quotient} R ${solution.remainder}</div></div>`;
+            } else {
+                html += `<div class="key-item"><strong>${i+1}.</strong><div class="problem">Problem: ${problemLine}</div><div class="answer">Final Answer: ${q.answer}</div></div>`;
+            }
+        } else {
+            html += `<div class="key-item"><strong>${i+1}.</strong><div class="problem">Problem: ${problemLine}</div><div class="answer">Final Answer: ${q.answer}</div></div>`;
+        }
     });
     html += `</div></body></html>`;
     const win = window.open("", "_blank");
     win.document.write(html);
     win.document.close();
+    const config = win.document.createElement("script");
+    config.text = [
+        "window.MathJax = {",
+        "  loader: {load: ['[tex]/enclose','[tex]/ams']},",
+        "  tex: {",
+        "    inlineMath: [['$','$'], ['\\\\(','\\\\)']],",
+        "    displayMath: [['$$','$$'], ['\\\\[','\\\\]']],",
+        "    packages: {'[+]': ['enclose','ams']}",
+        "  },",
+        "  svg: { fontCache: 'global' }",
+        "};"
+    ].join("\n");
+    win.document.head.appendChild(config);
+    const mj = win.document.createElement("script");
+    mj.async = true;
+    mj.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    mj.onload = () => {
+        if (win.MathJax && win.MathJax.typesetPromise) {
+            win.MathJax.typesetPromise([win.document.body]);
+        }
+    };
+    win.document.head.appendChild(mj);
 }
