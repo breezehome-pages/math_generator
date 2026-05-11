@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round Decimals</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <style>
+        :root {
+            --primary: #7c2d12;
+            --group-bg: #fff7ed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Round Decimal Numbers</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="round-to">Round to:</label>
+                <select id="round-to">
+                    <option value="mixed">Mixed practice</option>
+                    <option value="0">Nearest whole number</option>
+                    <option value="1">Nearest tenth</option>
+                    <option value="2">Nearest hundredth</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="inline-choice">
+                    <input type="checkbox" id="include-repeating" checked>
+                    Include repeating decimals
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="max-whole">Max whole number:</label>
+                <input type="number" id="max-whole" min="0" max="9999" value="5000">
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script src="practice_page_common.js"></script>
+    <script>
+        function buildRepeatingSample(maxWhole) {
+            const whole = maxWhole >= 1000 ? randInt(1000, maxWhole) : randInt(0, maxWhole);
+            const nonRepeatLength = randInt(0, 2);
+            const repeatLength = randInt(1, 2);
+            let nonRepeat = '';
+            for (let i = 0; i < nonRepeatLength; i++) {
+                nonRepeat += String(randInt(0, 9));
+            }
+
+            let repeat = '';
+            while (!/[1-9]/.test(repeat)) {
+                repeat = '';
+                for (let i = 0; i < repeatLength; i++) {
+                    repeat += String(randInt(0, 9));
+                }
+            }
+
+            const prefixValue = nonRepeatLength > 0 ? parseInt(nonRepeat, 10) : 0;
+            const repeatedValue = parseInt(`${nonRepeat}${repeat}`, 10) - prefixValue;
+            const denominator = Math.pow(10, nonRepeatLength) * (Math.pow(10, repeatLength) - 1);
+            const numerator = whole * denominator + repeatedValue;
+
+            return {
+                type: 'repeating',
+                whole,
+                nonRepeat,
+                repeat,
+                numerator,
+                denominator,
+                latex: `${whole}.${nonRepeat}\\overline{${repeat}}`
+            };
+        }
+
+        function buildTerminatingSample(maxWhole) {
+            const places = randInt(2, 3);
+            const fractionLimit = Math.pow(10, places) - 1;
+            const whole = maxWhole >= 1000 ? randInt(1000, maxWhole) : randInt(0, maxWhole);
+            const fractionValue = randInt(1, fractionLimit);
+            const fractionText = String(fractionValue).padStart(places, '0');
+            return {
+                type: 'terminating',
+                whole,
+                fractionText,
+                numerator: whole * Math.pow(10, places) + fractionValue,
+                denominator: Math.pow(10, places),
+                latex: `${whole}.${fractionText}`
+            };
+        }
+
+        function buildExpansionDigits(sample, length) {
+            if (sample.type === 'terminating') {
+                return sample.fractionText.padEnd(length, '0');
+            }
+            return (sample.nonRepeat + sample.repeat.repeat(length + 2)).slice(0, length);
+        }
+
+        function formatRoundedValue(scaledValue, places) {
+            if (places === 0) {
+                return String(scaledValue);
+            }
+            const padded = String(scaledValue).padStart(places + 1, '0');
+            const whole = padded.slice(0, -places);
+            const fractional = padded.slice(-places);
+            return `${whole}.${fractional}`;
+        }
+
+        function roundSample(sample, places) {
+            const scale = Math.pow(10, places);
+            const roundedScaled = Math.floor((2 * sample.numerator * scale + sample.denominator) / (2 * sample.denominator));
+            return formatRoundedValue(roundedScaled, places);
+        }
+
+        function placeName(places) {
+            if (places === 0) {
+                return 'whole number';
+            }
+            if (places === 1) {
+                return 'tenth';
+            }
+            return 'hundredth';
+        }
+
+        function generateProblems() {
+            const roundTo = document.getElementById('round-to').value;
+            const includeRepeating = document.getElementById('include-repeating').checked;
+            const maxWhole = parseInt(document.getElementById('max-whole').value, 10);
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+
+            const problems = [];
+            for (let i = 0; i < count; i++) {
+                const places = roundTo === 'mixed' ? randInt(0, 2) : parseInt(roundTo, 10);
+                const sample = includeRepeating && Math.random() < 0.45
+                    ? buildRepeatingSample(maxWhole)
+                    : buildTerminatingSample(maxWhole);
+                sample.roundPlaces = places;
+                sample.answer = roundSample(sample, places);
+                sample.lookAheadDigit = buildExpansionDigits(sample, places + 1).charAt(places) || '0';
+                problems.push({
+                    sample,
+                    questionHtml: `Round \\(${sample.latex}\\) to the nearest ${placeName(places)}.`
+                });
+            }
+
+            sessionStorage.setItem('decimal_rounding_answers', JSON.stringify(problems));
+            renderProblemGrid(problems);
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('decimal_rounding_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+
+            const problems = JSON.parse(data);
+            let bodyHtml = '';
+
+            problems.forEach((problem, index) => {
+                const sample = problem.sample;
+                const direction = parseInt(sample.lookAheadDigit, 10) >= 5 ? 'round up' : 'stay the same';
+                bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> \\(${sample.latex} \\approx ${sample.answer}\\)`;
+                bodyHtml += `<div class="answer-step">Next digit is ${sample.lookAheadDigit}, so the kept digit ${direction}.</div>`;
+                bodyHtml += `</div>`;
+            });
+
+            openAnswerKeyWindow('Answer Key', bodyHtml);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>

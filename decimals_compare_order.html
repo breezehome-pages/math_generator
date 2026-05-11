@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare and Order Decimals</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <style>
+        :root {
+            --primary: #0891b2;
+            --group-bg: #ecfeff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Read, Represent, Compare, and Order Decimals</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="question-type">Question type:</label>
+                <select id="question-type">
+                    <option value="compare">Compare decimal numbers</option>
+                    <option value="order">Put decimals in order</option>
+                    <option value="number-line">Compare decimals on number lines</option>
+                    <option value="word-form">Read and represent decimals</option>
+                    <option value="mixed" selected>Mixed practice</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="max-whole">Max whole number:</label>
+                <input type="number" id="max-whole" min="0" max="9999" value="5000">
+            </div>
+            <div class="form-group">
+                <label for="max-places">Max decimal places:</label>
+                <input type="number" id="max-places" min="1" max="3" value="3">
+            </div>
+            <div class="form-group">
+                <label for="items-per-question">Decimals per ordering question:</label>
+                <input type="number" id="items-per-question" min="3" max="5" value="4">
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script src="practice_page_common.js"></script>
+    <script>
+        function buildDecimalSample(maxWhole, maxPlaces) {
+            const whole = maxWhole >= 1000 ? randInt(1000, maxWhole) : randInt(0, maxWhole);
+            const places = randInt(1, maxPlaces);
+            const limit = Math.pow(10, places) - 1;
+            let fraction = randInt(1, limit);
+            const fractionText = String(fraction).padStart(places, '0');
+            return {
+                whole,
+                places,
+                fractionText,
+                value: whole + fraction / Math.pow(10, places),
+                text: `${whole}.${fractionText}`
+            };
+        }
+
+        function integerToWords(number) {
+            const ones = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+            const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+            const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+            if (number < 10) {
+                return ones[number];
+            }
+            if (number < 20) {
+                return teens[number - 10];
+            }
+            if (number < 100) {
+                const ten = Math.floor(number / 10);
+                const one = number % 10;
+                return one === 0 ? tens[ten] : `${tens[ten]}-${ones[one]}`;
+            }
+            if (number < 1000) {
+                const hundred = Math.floor(number / 100);
+                const remainder = number % 100;
+                if (remainder === 0) {
+                    return `${ones[hundred]} hundred`;
+                }
+                return `${ones[hundred]} hundred ${integerToWords(remainder)}`;
+            }
+            const thousand = Math.floor(number / 1000);
+            const remainder = number % 1000;
+            if (remainder === 0) {
+                return `${integerToWords(thousand)} thousand`;
+            }
+            return `${integerToWords(thousand)} thousand ${integerToWords(remainder)}`;
+        }
+
+        function decimalToWords(sample) {
+            const denominatorNames = {
+                1: 'tenths',
+                2: 'hundredths',
+                3: 'thousandths'
+            };
+            const fractionalValue = parseInt(sample.fractionText, 10);
+            const fractionalWords = integerToWords(fractionalValue);
+            const wholeWords = integerToWords(sample.whole);
+            return `${wholeWords} and ${fractionalWords} ${denominatorNames[sample.places]}`;
+        }
+
+        function numberLineHtml(sampleA, sampleB) {
+            const start = Math.floor(Math.min(sampleA.value, sampleB.value));
+            const end = start + 1;
+            const posA = ((sampleA.value - start) / (end - start)) * 100;
+            const posB = ((sampleB.value - start) / (end - start)) * 100;
+
+            let ticks = '';
+            for (let i = 0; i <= 10; i++) {
+                const x = 20 + i * 30;
+                ticks += `<line x1="${x}" y1="28" x2="${x}" y2="52" stroke="#94a3b8" stroke-width="1"></line>`;
+            }
+
+            return `<div class="number-line-wrap">
+                <svg class="number-line-svg" viewBox="0 0 340 84" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="20" y1="40" x2="320" y2="40" stroke="#1f2937" stroke-width="2"></line>
+                    ${ticks}
+                    <circle cx="${20 + posA * 3}" cy="26" r="5" fill="#2563eb"></circle>
+                    <text x="${20 + posA * 3}" y="18" text-anchor="middle" font-size="12" fill="#2563eb">A</text>
+                    <circle cx="${20 + posB * 3}" cy="58" r="5" fill="#dc2626"></circle>
+                    <text x="${20 + posB * 3}" y="77" text-anchor="middle" font-size="12" fill="#dc2626">B</text>
+                    <text x="20" y="70" text-anchor="middle" font-size="12" fill="#1f2937">${start}</text>
+                    <text x="320" y="70" text-anchor="middle" font-size="12" fill="#1f2937">${end}</text>
+                </svg>
+            </div>`;
+        }
+
+        function uniqueDecimals(size, maxWhole, maxPlaces) {
+            const values = [];
+            const seen = new Set();
+            while (values.length < size) {
+                const sample = buildDecimalSample(maxWhole, maxPlaces);
+                if (seen.has(sample.text)) {
+                    continue;
+                }
+                seen.add(sample.text);
+                values.push(sample);
+            }
+            return values;
+        }
+
+        function generateProblems() {
+            const questionType = document.getElementById('question-type').value;
+            const maxWhole = parseInt(document.getElementById('max-whole').value, 10);
+            const maxPlaces = parseInt(document.getElementById('max-places').value, 10);
+            const itemsPerQuestion = parseInt(document.getElementById('items-per-question').value, 10);
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+            const mixedTypes = ['compare', 'order', 'number-line', 'word-form'];
+
+            const problems = [];
+            for (let i = 0; i < count; i++) {
+                const type = questionType === 'mixed'
+                    ? mixedTypes[randInt(0, mixedTypes.length - 1)]
+                    : questionType;
+
+                if (type === 'compare') {
+                    const pair = uniqueDecimals(2, maxWhole, maxPlaces);
+                    const left = pair[0];
+                    const right = pair[1];
+                    problems.push({
+                        type,
+                        left,
+                        right,
+                        symbol: left.value < right.value ? '<' : '>',
+                        questionHtml: `\\(${left.text} \\quad \\square \\quad ${right.text}\\)<div class="problem-note">Write < or >.</div>`
+                    });
+                } else if (type === 'order') {
+                    const values = uniqueDecimals(itemsPerQuestion, maxWhole, maxPlaces);
+                    const ordered = values.slice().sort((a, b) => a.value - b.value);
+                    problems.push({
+                        type,
+                        values,
+                        ordered,
+                        questionHtml: `Order from least to greatest:<br>\\(${values.map((item) => item.text).join(', ')}\\)`
+                    });
+                } else if (type === 'number-line') {
+                    const pair = uniqueDecimals(2, maxWhole, maxPlaces);
+                    problems.push({
+                        type,
+                        left: pair[0],
+                        right: pair[1],
+                        wide: true,
+                        questionHtml: `Which point is greater, A or B?${numberLineHtml(pair[0], pair[1])}`
+                    });
+                } else {
+                    const sample = buildDecimalSample(maxWhole, maxPlaces);
+                    const direction = Math.random() < 0.5 ? 'decimal-to-words' : 'words-to-decimal';
+                    problems.push({
+                        type,
+                        direction,
+                        sample,
+                        questionHtml: direction === 'decimal-to-words'
+                            ? `Write this decimal in words:<br>\\(${sample.text}\\)`
+                            : `Write the decimal number for:<br><strong>${decimalToWords(sample)}</strong>`
+                    });
+                }
+            }
+
+            sessionStorage.setItem('decimal_compare_order_answers', JSON.stringify(problems));
+            renderProblemGrid(problems);
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('decimal_compare_order_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+
+            const problems = JSON.parse(data);
+            let bodyHtml = '';
+
+            problems.forEach((problem, index) => {
+                bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> `;
+
+                if (problem.type === 'compare') {
+                    bodyHtml += `\\(${problem.left.text} ${problem.symbol} ${problem.right.text}\\)`;
+                } else if (problem.type === 'order') {
+                    bodyHtml += `\\(${problem.ordered.map((item) => item.text).join(' < ')}\\)`;
+                } else if (problem.type === 'number-line') {
+                    const symbol = problem.left.value < problem.right.value ? '<' : '>';
+                    bodyHtml += `A = \\(${problem.left.text}\\), B = \\(${problem.right.text}\\), so \\(${problem.left.text} ${symbol} ${problem.right.text}\\)`;
+                } else if (problem.direction === 'decimal-to-words') {
+                    bodyHtml += `${problem.sample.text} = ${decimalToWords(problem.sample)}`;
+                } else {
+                    bodyHtml += `${decimalToWords(problem.sample)} = \\(${problem.sample.text}\\)`;
+                }
+
+                bodyHtml += `</div>`;
+            });
+
+            openAnswerKeyWindow('Answer Key', bodyHtml);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>

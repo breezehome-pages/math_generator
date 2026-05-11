@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divide Whole Numbers by Fractions</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <style>
+        :root {
+            --primary: #0f766e;
+            --group-bg: #ecfeff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Divide Whole Numbers by Proper Fractions</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="max-whole">Max whole number:</label>
+                <input type="number" id="max-whole" min="2" max="20" value="12">
+            </div>
+            <div class="form-group">
+                <label for="max-denominator">Max denominator:</label>
+                <input type="number" id="max-denominator" min="2" max="12" value="9">
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script src="practice_page_common.js"></script>
+    <script>
+        function finalDivisionLatex(numerator, denominator) {
+            const mixed = toMixedNumber(numerator, denominator);
+            const simplified = simplifyFraction(numerator, denominator);
+
+            if (mixed.remainder === 0) {
+                return `${mixed.whole}`;
+            }
+
+            if (mixed.whole === 0) {
+                return latexFraction(simplified.n, simplified.d);
+            }
+
+            return `${latexFraction(simplified.n, simplified.d)} = ${latexMixed(mixed.whole, mixed.remainder, mixed.denominator)}`;
+        }
+
+        function generateProblems() {
+            const maxWhole = parseInt(document.getElementById('max-whole').value, 10);
+            const maxDenominator = parseInt(document.getElementById('max-denominator').value, 10);
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+
+            const problems = [];
+            for (let i = 0; i < count; i++) {
+                const whole = randInt(2, maxWhole);
+                const denominator = randInt(2, maxDenominator);
+                const numerator = randInt(1, denominator - 1);
+                const quotientNumerator = whole * denominator;
+                const quotientDenominator = numerator;
+                const simplified = simplifyFraction(quotientNumerator, quotientDenominator);
+
+                problems.push({
+                    whole,
+                    numerator,
+                    denominator,
+                    quotientNumerator,
+                    quotientDenominator,
+                    simplified,
+                    questionHtml: `\\(${whole} \\div ${latexFraction(numerator, denominator)}\\)`
+                });
+            }
+
+            sessionStorage.setItem('fraction_divide_whole_answers', JSON.stringify(problems));
+            renderProblemGrid(problems);
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('fraction_divide_whole_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+
+            const problems = JSON.parse(data);
+            let bodyHtml = '';
+
+            problems.forEach((problem, index) => {
+                bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> \\(${problem.whole} \\div ${latexFraction(problem.numerator, problem.denominator)}\\)`;
+                bodyHtml += `<div class="answer-step">\\(= ${problem.whole} \\times ${latexFraction(problem.denominator, problem.numerator)}\\)</div>`;
+                bodyHtml += `<div class="answer-step">\\(= ${latexFraction(problem.quotientNumerator, problem.quotientDenominator)}\\)</div>`;
+
+                const finalLatex = finalDivisionLatex(problem.quotientNumerator, problem.quotientDenominator);
+                if (finalLatex !== latexFraction(problem.quotientNumerator, problem.quotientDenominator)) {
+                    bodyHtml += `<div class="answer-step">\\(= ${finalLatex}\\)</div>`;
+                }
+
+                bodyHtml += `</div>`;
+            });
+
+            openAnswerKeyWindow('Answer Key', bodyHtml);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>

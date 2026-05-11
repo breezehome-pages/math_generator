@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractions and Decimals Equivalence</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --group-bg: #f5f3ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Fractions and Decimals Equivalence</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="direction">Question type:</label>
+                <select id="direction">
+                    <option value="fraction-to-decimal">Fraction to decimal</option>
+                    <option value="decimal-to-fraction">Decimal to fraction</option>
+                    <option value="mixed" selected>Mixed practice</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="max-whole">Max whole number:</label>
+                <input type="number" id="max-whole" min="0" max="9999" value="5000">
+            </div>
+            <div class="form-group">
+                <label for="max-denominator">Max denominator:</label>
+                <select id="max-denominator">
+                    <option value="10">10</option>
+                    <option value="100">100</option>
+                    <option value="1000" selected>1000</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script src="practice_page_common.js"></script>
+    <script>
+        const terminatingDenominators = [2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500, 1000];
+
+        function randomWholePart(maxWhole) {
+            if (maxWhole >= 1000) {
+                return randInt(1000, maxWhole);
+            }
+            return randInt(0, maxWhole);
+        }
+
+        function formatDecimalString(value) {
+            return value.toFixed(3).replace(/\.?0+$/, '');
+        }
+
+        function buildFractionSample(maxWhole, maxDenominator) {
+            const validDenominators = terminatingDenominators.filter((denominator) => denominator <= maxDenominator);
+            const denominator = validDenominators[randInt(0, validDenominators.length - 1)];
+            const whole = randomWholePart(maxWhole);
+            let numerator = randInt(1, denominator - 1);
+
+            const simplifiedPart = simplifyFraction(numerator, denominator);
+            numerator = simplifiedPart.n;
+            const reducedDenominator = simplifiedPart.d;
+            const decimalValue = whole + numerator / reducedDenominator;
+
+            return {
+                whole,
+                numerator,
+                denominator: reducedDenominator,
+                decimalString: formatDecimalString(decimalValue)
+            };
+        }
+
+        function fractionDisplay(sample) {
+            if (sample.whole === 0) {
+                return latexFraction(sample.numerator, sample.denominator);
+            }
+            return latexMixed(sample.whole, sample.numerator, sample.denominator);
+        }
+
+        function decimalToFractionLatex(sample) {
+            if (sample.whole === 0) {
+                return latexFraction(sample.numerator, sample.denominator);
+            }
+            return latexMixed(sample.whole, sample.numerator, sample.denominator);
+        }
+
+        function generateProblems() {
+            const direction = document.getElementById('direction').value;
+            const maxWhole = parseInt(document.getElementById('max-whole').value, 10);
+            const maxDenominator = parseInt(document.getElementById('max-denominator').value, 10);
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+
+            const problems = [];
+            for (let i = 0; i < count; i++) {
+                const type = direction === 'mixed'
+                    ? (Math.random() < 0.5 ? 'fraction-to-decimal' : 'decimal-to-fraction')
+                    : direction;
+                const sample = buildFractionSample(maxWhole, maxDenominator);
+
+                if (type === 'fraction-to-decimal') {
+                    problems.push({
+                        type,
+                        sample,
+                        questionHtml: `Write as a decimal:<br>\\(${fractionDisplay(sample)}\\)`
+                    });
+                } else {
+                    problems.push({
+                        type,
+                        sample,
+                        questionHtml: `Write as a fraction in simplest form:<br>\\(${sample.decimalString}\\)`
+                    });
+                }
+            }
+
+            sessionStorage.setItem('fraction_decimal_equivalence_answers', JSON.stringify(problems));
+            renderProblemGrid(problems);
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('fraction_decimal_equivalence_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+
+            const problems = JSON.parse(data);
+            let bodyHtml = '';
+
+            problems.forEach((problem, index) => {
+                const sample = problem.sample;
+                const thousandths = Math.round(parseFloat(sample.decimalString) * 1000);
+
+                bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> `;
+                if (problem.type === 'fraction-to-decimal') {
+                    bodyHtml += `\\(${fractionDisplay(sample)} = ${sample.decimalString}\\)`;
+                    bodyHtml += `<div class="answer-step">\\(${sample.whole > 0 ? latexMixed(sample.whole, sample.numerator, sample.denominator) : latexFraction(sample.numerator, sample.denominator)} = ${sample.decimalString}\\)</div>`;
+                } else {
+                    bodyHtml += `\\(${sample.decimalString} = ${decimalToFractionLatex(sample)}\\)`;
+                    bodyHtml += `<div class="answer-step">\\(${sample.decimalString} = ${latexFraction(thousandths, 1000)}\\)</div>`;
+                    if (sample.whole > 0) {
+                        const improperNumerator = sample.whole * sample.denominator + sample.numerator;
+                        bodyHtml += `<div class="answer-step">\\(= ${latexFraction(improperNumerator, sample.denominator)} = ${latexMixed(sample.whole, sample.numerator, sample.denominator)}\\)</div>`;
+                    } else {
+                        bodyHtml += `<div class="answer-step">\\(= ${latexFraction(sample.numerator, sample.denominator)}\\)</div>`;
+                    }
+                }
+                bodyHtml += `</div>`;
+            });
+
+            openAnswerKeyWindow('Answer Key', bodyHtml);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>

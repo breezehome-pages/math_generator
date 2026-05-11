@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraction Subtraction</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <style>
+        :root {
+            --primary: #dc2626;
+            --group-bg: #fef2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Fraction Subtraction</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="max-denominator">Max denominator:</label>
+                <input type="number" id="max-denominator" min="2" max="12" value="9">
+            </div>
+            <div class="form-group">
+                <label class="inline-choice">
+                    <input type="checkbox" id="same-denominator" checked>
+                    Same denominator only
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script src="practice_page_common.js"></script>
+    <script>
+        function generateProblem(maxDenominator, sameDenominator) {
+            while (true) {
+                const d1 = randInt(2, maxDenominator);
+                let d2 = sameDenominator ? d1 : randInt(2, maxDenominator);
+
+                if (!sameDenominator) {
+                    while (d2 === d1) {
+                        d2 = randInt(2, maxDenominator);
+                    }
+                }
+
+                const n1 = randInt(1, d1 - 1);
+                const n2 = randInt(1, d2 - 1);
+                const leftValue = n1 / d1;
+                const rightValue = n2 / d2;
+
+                if (leftValue === rightValue) {
+                    continue;
+                }
+
+                const left = leftValue > rightValue ? { n: n1, d: d1 } : { n: n2, d: d2 };
+                const right = leftValue > rightValue ? { n: n2, d: d2 } : { n: n1, d: d1 };
+
+                const commonDenominator = lcm(left.d, right.d);
+                const leftScaled = left.n * (commonDenominator / left.d);
+                const rightScaled = right.n * (commonDenominator / right.d);
+                const difference = simplifyFraction(leftScaled - rightScaled, commonDenominator);
+
+                return {
+                    left,
+                    right,
+                    commonDenominator,
+                    leftScaled,
+                    rightScaled,
+                    difference,
+                    questionHtml: `\\(${latexFraction(left.n, left.d)} - ${latexFraction(right.n, right.d)}\\)`
+                };
+            }
+        }
+
+        function generateProblems() {
+            const maxDenominator = parseInt(document.getElementById('max-denominator').value, 10);
+            const sameDenominator = document.getElementById('same-denominator').checked;
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+
+            const problems = [];
+            for (let i = 0; i < count; i++) {
+                problems.push(generateProblem(maxDenominator, sameDenominator));
+            }
+
+            sessionStorage.setItem('fraction_subtraction_answers', JSON.stringify(problems));
+            renderProblemGrid(problems);
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('fraction_subtraction_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+
+            const problems = JSON.parse(data);
+            let bodyHtml = '';
+
+            problems.forEach((problem, index) => {
+                bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> \\(${latexFraction(problem.left.n, problem.left.d)} - ${latexFraction(problem.right.n, problem.right.d)}\\)`;
+                if (problem.left.d === problem.right.d) {
+                    bodyHtml += `<div class="answer-step">\\(\\text{Same denominator: } ${problem.left.d}\\)</div>`;
+                } else {
+                    bodyHtml += `<div class="answer-step">\\(\\text{Common denominator: } ${problem.commonDenominator}\\)</div>`;
+                    bodyHtml += `<div class="answer-step">\\(${latexFraction(problem.left.n, problem.left.d)} = ${latexFraction(problem.leftScaled, problem.commonDenominator)}\\)</div>`;
+                    bodyHtml += `<div class="answer-step">\\(${latexFraction(problem.right.n, problem.right.d)} = ${latexFraction(problem.rightScaled, problem.commonDenominator)}\\)</div>`;
+                }
+
+                bodyHtml += `<div class="answer-step">\\(${latexFraction(problem.leftScaled, problem.commonDenominator)} - ${latexFraction(problem.rightScaled, problem.commonDenominator)} = ${latexFraction(problem.leftScaled - problem.rightScaled, problem.commonDenominator)}\\)</div>`;
+                if (problem.difference.n !== problem.leftScaled - problem.rightScaled || problem.difference.d !== problem.commonDenominator) {
+                    bodyHtml += `<div class="answer-step">\\(${latexFraction(problem.leftScaled - problem.rightScaled, problem.commonDenominator)} = ${latexFraction(problem.difference.n, problem.difference.d)}\\)</div>`;
+                } else {
+                    bodyHtml += `<div class="answer-step">\\(\\text{Already simplest form}\\)</div>`;
+                }
+                bodyHtml += `</div>`;
+            });
+
+            openAnswerKeyWindow('Answer Key', bodyHtml);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>

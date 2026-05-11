@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Represent, Compare, and Order Fractions</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --group-bg: #eff6ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Represent, Compare, and Order Fractions</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="question-type">Question type:</label>
+                <select id="question-type">
+                    <option value="compare">Compare two fractions</option>
+                    <option value="order">Order fractions</option>
+                    <option value="mixed" selected>Mixed practice</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="inline-choice">
+                    <input type="checkbox" id="include-mixed" checked>
+                    Include mixed numbers
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="max-denominator">Max denominator:</label>
+                <input type="number" id="max-denominator" min="2" max="12" value="9">
+            </div>
+            <div class="form-group">
+                <label for="max-whole">Max whole number:</label>
+                <input type="number" id="max-whole" min="1" max="12" value="4">
+            </div>
+            <div class="form-group">
+                <label for="items-per-question">Fractions per ordering question:</label>
+                <input type="number" id="items-per-question" min="3" max="5" value="4">
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script src="practice_page_common.js"></script>
+    <script>
+        function buildFractionValue(maxDenominator, maxWhole, includeMixed) {
+            const denominator = randInt(2, maxDenominator);
+
+            if (includeMixed && Math.random() < 0.35) {
+                return {
+                    kind: 'mixed',
+                    whole: randInt(1, maxWhole),
+                    n: randInt(1, denominator - 1),
+                    d: denominator
+                };
+            }
+
+            let numerator = randInt(1, denominator * (maxWhole + 1) - 1);
+            if (numerator % denominator === 0) {
+                numerator += 1;
+            }
+
+            return {
+                kind: 'fraction',
+                n: numerator,
+                d: denominator
+            };
+        }
+
+        function fractionSortKey(value) {
+            return (value.kind === 'mixed' ? value.whole : 0) + value.n / value.d;
+        }
+
+        function uniqueFractionSet(size, maxDenominator, maxWhole, includeMixed) {
+            const values = [];
+            const seen = new Set();
+
+            while (values.length < size) {
+                const value = buildFractionValue(maxDenominator, maxWhole, includeMixed);
+                const key = `${fractionSortKey(value).toFixed(6)}|${fractionValueLatex(value)}`;
+                if (seen.has(key)) {
+                    continue;
+                }
+                seen.add(key);
+                values.push(value);
+            }
+
+            return values;
+        }
+
+        function generateProblems() {
+            const questionType = document.getElementById('question-type').value;
+            const includeMixed = document.getElementById('include-mixed').checked;
+            const maxDenominator = parseInt(document.getElementById('max-denominator').value, 10);
+            const maxWhole = parseInt(document.getElementById('max-whole').value, 10);
+            const itemsPerQuestion = parseInt(document.getElementById('items-per-question').value, 10);
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+
+            const problems = [];
+            for (let i = 0; i < count; i++) {
+                const type = questionType === 'mixed'
+                    ? (Math.random() < 0.5 ? 'compare' : 'order')
+                    : questionType;
+
+                if (type === 'compare') {
+                    const pair = uniqueFractionSet(2, maxDenominator, maxWhole, includeMixed);
+                    const left = pair[0];
+                    const right = pair[1];
+                    const comparison = compareFractionValues(left, right);
+                    problems.push({
+                        type,
+                        left,
+                        right,
+                        symbol: comparison < 0 ? '<' : '>',
+                        questionHtml: `\\(${fractionValueLatex(left)} \\quad \\square \\quad ${fractionValueLatex(right)}\\)<div class="problem-note">Write < or >.</div>`
+                    });
+                } else {
+                    const values = uniqueFractionSet(itemsPerQuestion, maxDenominator, maxWhole, includeMixed);
+                    const ordered = values.slice().sort((a, b) => compareFractionValues(a, b));
+                    problems.push({
+                        type,
+                        values,
+                        ordered,
+                        questionHtml: `Order from least to greatest:<br>\\(${values.map(fractionValueLatex).join(', ')}\\)`
+                    });
+                }
+            }
+
+            sessionStorage.setItem('fraction_compare_order_answers', JSON.stringify(problems));
+            renderProblemGrid(problems);
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('fraction_compare_order_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+
+            const problems = JSON.parse(data);
+            let bodyHtml = '';
+
+            problems.forEach((problem, index) => {
+                bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> `;
+                if (problem.type === 'compare') {
+                    bodyHtml += `\\(${fractionValueLatex(problem.left)} ${problem.symbol} ${fractionValueLatex(problem.right)}\\)`;
+                } else {
+                    bodyHtml += `\\(${problem.ordered.map(fractionValueLatex).join(' < ')}\\)`;
+                }
+                bodyHtml += `</div>`;
+            });
+
+            openAnswerKeyWindow('Answer Key', bodyHtml);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>

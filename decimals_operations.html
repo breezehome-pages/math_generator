@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decimal Operations</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <style>
+        :root {
+            --primary: #4338ca;
+            --group-bg: #eef2ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="margin-bottom: 10px;">
+            <a href="fractions.html" class="btn-home">Fractions menu</a>
+        </div>
+
+        <h1>Decimal Operations</h1>
+
+        <div class="form-container no-print">
+            <div class="form-group">
+                <label for="operation">Operation:</label>
+                <select id="operation">
+                    <option value="addition">Addition</option>
+                    <option value="subtraction">Subtraction</option>
+                    <option value="multiplication">3-digit whole × decimal tenth</option>
+                    <option value="division">3-digit whole ÷ decimal tenth</option>
+                    <option value="mixed" selected>Mixed practice</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="max-whole">Max whole number for add/sub:</label>
+                <input type="number" id="max-whole" min="5" max="9999" value="5000">
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12">
+            </div>
+            <div class="button-row">
+                <button type="button" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </div>
+
+        <div id="problem-grid"></div>
+    </div>
+
+    <script src="practice_page_common.js"></script>
+    <script>
+        function formatDecimalTextFromParts(whole, fraction, places) {
+            return `${whole}.${String(fraction).padStart(places, '0')}`;
+        }
+
+        function buildAddSubSample(maxWhole) {
+            const places = randInt(1, 3);
+            const lowerBound = maxWhole >= 1000 ? 1000 : 0;
+            const leftWhole = randInt(lowerBound, maxWhole);
+            const rightWhole = randInt(lowerBound, maxWhole);
+            const leftFraction = randInt(1, Math.pow(10, places) - 1);
+            const rightFraction = randInt(1, Math.pow(10, places) - 1);
+
+            const leftScaled = leftWhole * Math.pow(10, places) + leftFraction;
+            const rightScaled = rightWhole * Math.pow(10, places) + rightFraction;
+
+            return {
+                places,
+                leftText: formatDecimalTextFromParts(leftWhole, leftFraction, places),
+                rightText: formatDecimalTextFromParts(rightWhole, rightFraction, places),
+                leftScaled,
+                rightScaled
+            };
+        }
+
+        function trimDecimalText(text) {
+            return text.replace(/\.?0+$/, '');
+        }
+
+        function formatScaledValue(value, places) {
+            const padded = String(value).padStart(places + 1, '0');
+            const whole = padded.slice(0, -places);
+            const fraction = padded.slice(-places);
+            return trimDecimalText(`${whole}.${fraction}`);
+        }
+
+        function buildDivisionSample() {
+            while (true) {
+                const divisorDigit = randInt(1, 9);
+                const step = 10 / gcd(10, divisorDigit);
+                const multiplier = randInt(2, 25);
+                const quotient = step * multiplier;
+                const dividend = (quotient * divisorDigit) / 10;
+                if (Number.isInteger(dividend) && dividend >= 100 && dividend <= 999) {
+                    return {
+                        divisorDigit,
+                        dividend,
+                        quotient
+                    };
+                }
+            }
+        }
+
+        function generateProblems() {
+            const operation = document.getElementById('operation').value;
+            const maxWhole = parseInt(document.getElementById('max-whole').value, 10);
+            const count = parseInt(document.getElementById('num-questions').value, 10);
+            const mixedTypes = ['addition', 'subtraction', 'multiplication', 'division'];
+
+            const problems = [];
+            for (let i = 0; i < count; i++) {
+                const type = operation === 'mixed'
+                    ? mixedTypes[randInt(0, mixedTypes.length - 1)]
+                    : operation;
+
+                if (type === 'addition' || type === 'subtraction') {
+                    const sample = buildAddSubSample(maxWhole);
+                    const left = sample.leftScaled;
+                    const right = sample.rightScaled;
+                    const adjusted = type === 'subtraction' && left < right
+                        ? { leftScaled: right, rightScaled: left, leftText: sample.rightText, rightText: sample.leftText }
+                        : { leftScaled: left, rightScaled: right, leftText: sample.leftText, rightText: sample.rightText };
+                    const resultScaled = type === 'addition'
+                        ? adjusted.leftScaled + adjusted.rightScaled
+                        : adjusted.leftScaled - adjusted.rightScaled;
+
+                    problems.push({
+                        type,
+                        places: sample.places,
+                        leftText: adjusted.leftText,
+                        rightText: adjusted.rightText,
+                        resultText: formatScaledValue(resultScaled, sample.places),
+                        questionHtml: `\\(${adjusted.leftText} ${type === 'addition' ? '+' : '-'} ${adjusted.rightText}\\)`
+                    });
+                } else if (type === 'multiplication') {
+                    const whole = randInt(100, 999);
+                    const divisorDigit = randInt(1, 9);
+                    const resultText = trimDecimalText(String((whole * divisorDigit) / 10));
+                    problems.push({
+                        type,
+                        whole,
+                        divisorDigit,
+                        resultText,
+                        questionHtml: `\\(${whole} \\times 0.${divisorDigit}\\)`
+                    });
+                } else {
+                    const sample = buildDivisionSample();
+                    problems.push({
+                        type,
+                        dividend: sample.dividend,
+                        divisorDigit: sample.divisorDigit,
+                        quotient: sample.quotient,
+                        questionHtml: `\\(${sample.dividend} \\div 0.${sample.divisorDigit}\\)`
+                    });
+                }
+            }
+
+            sessionStorage.setItem('decimal_operations_answers', JSON.stringify(problems));
+            renderProblemGrid(problems);
+        }
+
+        function openAnswerKey() {
+            const data = sessionStorage.getItem('decimal_operations_answers');
+            if (!data) {
+                alert('Please generate questions first.');
+                return;
+            }
+
+            const problems = JSON.parse(data);
+            let bodyHtml = '';
+
+            problems.forEach((problem, index) => {
+                bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> `;
+                if (problem.type === 'addition' || problem.type === 'subtraction') {
+                    bodyHtml += `\\(${problem.leftText} ${problem.type === 'addition' ? '+' : '-'} ${problem.rightText} = ${problem.resultText}\\)`;
+                } else if (problem.type === 'multiplication') {
+                    bodyHtml += `\\(${problem.whole} \\times 0.${problem.divisorDigit} = ${problem.whole} \\times ${latexFraction(problem.divisorDigit, 10)} = ${problem.resultText}\\)`;
+                } else {
+                    bodyHtml += `\\(${problem.dividend} \\div 0.${problem.divisorDigit} = ${problem.dividend * 10} \\div ${problem.divisorDigit} = ${problem.quotient}\\)`;
+                }
+                bodyHtml += `</div>`;
+            });
+
+            openAnswerKeyWindow('Answer Key', bodyHtml);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generate-btn').addEventListener('click', generateProblems);
+            document.getElementById('answer-key-btn').addEventListener('click', openAnswerKey);
+            document.getElementById('print-btn').addEventListener('click', () => window.print());
+            generateProblems();
+        });
+    </script>
+</body>
+</html>
