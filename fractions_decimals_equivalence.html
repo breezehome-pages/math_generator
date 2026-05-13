@@ -113,6 +113,11 @@
             return latexMixed(sample.whole, sample.numerator, sample.denominator);
         }
 
+        function decimalPlacesForSample(sample) {
+            const fractionalPart = sample.decimalString.split('.')[1];
+            return fractionalPart ? fractionalPart.length : 0;
+        }
+
         function decimalStringToFraction(decimalString) {
             const parts = decimalString.split('.');
             const wholePart = parseInt(parts[0], 10);
@@ -186,7 +191,27 @@
                 bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> `;
                 if (problem.type === 'fraction-to-decimal') {
                     bodyHtml += `\\(${fractionDisplay(sample)} = ${sample.decimalString}\\)`;
-                    bodyHtml += `<div class="answer-step">\\(${sample.whole > 0 ? latexMixed(sample.whole, sample.numerator, sample.denominator) : latexFraction(sample.numerator, sample.denominator)} = ${sample.decimalString}\\)</div>`;
+                    const decimalPlaces = decimalPlacesForSample(sample);
+                    const placeDenominator = Math.pow(10, decimalPlaces);
+                    const equivalentNumerator = (sample.numerator * placeDenominator) / sample.denominator;
+                    const decimalPart = sample.decimalString.split('.')[1] || '';
+
+                    if (sample.whole > 0) {
+                        bodyHtml += `<div class="answer-step">\\(${latexMixed(sample.whole, sample.numerator, sample.denominator)} = ${sample.whole} + ${latexFraction(sample.numerator, sample.denominator)}\\)</div>`;
+                        if (sample.denominator !== placeDenominator) {
+                            bodyHtml += `<div class="answer-step">\\(= ${sample.whole} + ${latexFraction(equivalentNumerator, placeDenominator)}\\)</div>`;
+                        }
+                        if (decimalPlaces > 0) {
+                            bodyHtml += `<div class="answer-step">\\(= ${sample.whole} + 0.${decimalPart}\\)</div>`;
+                        }
+                    } else {
+                        if (sample.denominator !== placeDenominator) {
+                            bodyHtml += `<div class="answer-step">\\(${latexFraction(sample.numerator, sample.denominator)} = ${latexFraction(equivalentNumerator, placeDenominator)}\\)</div>`;
+                        }
+                        if (decimalPlaces > 0) {
+                            bodyHtml += `<div class="answer-step">\\(= 0.${decimalPart}\\)</div>`;
+                        }
+                    }
                 } else {
                     bodyHtml += `\\(${sample.decimalString} = ${decimalToFractionLatex(sample)}\\)`;
                     bodyHtml += `<div class="answer-step">\\(${sample.decimalString} = ${latexFraction(decimalFraction.rawNumerator, decimalFraction.rawDenominator)}\\)</div>`;
