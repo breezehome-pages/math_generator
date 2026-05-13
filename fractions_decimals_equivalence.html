@@ -113,6 +113,29 @@
             return latexMixed(sample.whole, sample.numerator, sample.denominator);
         }
 
+        function decimalStringToFraction(decimalString) {
+            const parts = decimalString.split('.');
+            const wholePart = parseInt(parts[0], 10);
+
+            if (parts.length === 1) {
+                return {
+                    rawNumerator: wholePart,
+                    rawDenominator: 1,
+                    simplified: { n: wholePart, d: 1 }
+                };
+            }
+
+            const fractionalPart = parts[1];
+            const rawDenominator = Math.pow(10, fractionalPart.length);
+            const rawNumerator = wholePart * rawDenominator + parseInt(fractionalPart, 10);
+
+            return {
+                rawNumerator,
+                rawDenominator,
+                simplified: simplifyFraction(rawNumerator, rawDenominator)
+            };
+        }
+
         function generateProblems() {
             const direction = document.getElementById('direction').value;
             const maxWhole = parseInt(document.getElementById('max-whole').value, 10);
@@ -157,7 +180,8 @@
 
             problems.forEach((problem, index) => {
                 const sample = problem.sample;
-                const thousandths = Math.round(parseFloat(sample.decimalString) * 1000);
+                const decimalFraction = decimalStringToFraction(sample.decimalString);
+                const mixed = toMixedNumber(decimalFraction.simplified.n, decimalFraction.simplified.d);
 
                 bodyHtml += `<div class="answer-item"><strong>${index + 1}.</strong> `;
                 if (problem.type === 'fraction-to-decimal') {
@@ -165,12 +189,31 @@
                     bodyHtml += `<div class="answer-step">\\(${sample.whole > 0 ? latexMixed(sample.whole, sample.numerator, sample.denominator) : latexFraction(sample.numerator, sample.denominator)} = ${sample.decimalString}\\)</div>`;
                 } else {
                     bodyHtml += `\\(${sample.decimalString} = ${decimalToFractionLatex(sample)}\\)`;
-                    bodyHtml += `<div class="answer-step">\\(${sample.decimalString} = ${latexFraction(thousandths, 1000)}\\)</div>`;
-                    if (sample.whole > 0) {
-                        const improperNumerator = sample.whole * sample.denominator + sample.numerator;
-                        bodyHtml += `<div class="answer-step">\\(= ${latexFraction(improperNumerator, sample.denominator)} = ${latexMixed(sample.whole, sample.numerator, sample.denominator)}\\)</div>`;
-                    } else {
-                        bodyHtml += `<div class="answer-step">\\(= ${latexFraction(sample.numerator, sample.denominator)}\\)</div>`;
+                    bodyHtml += `<div class="answer-step">\\(${sample.decimalString} = ${latexFraction(decimalFraction.rawNumerator, decimalFraction.rawDenominator)}\\)</div>`;
+                    if (
+                        decimalFraction.rawNumerator !== decimalFraction.simplified.n ||
+                        decimalFraction.rawDenominator !== decimalFraction.simplified.d
+                    ) {
+                        const commonFactor = gcd(decimalFraction.rawNumerator, decimalFraction.rawDenominator);
+                        bodyHtml += `<div class="answer-step">\\(= ${latexFraction(`${decimalFraction.rawNumerator} \\div ${commonFactor}`, `${decimalFraction.rawDenominator} \\div ${commonFactor}`)}\\)</div>`;
+                        bodyHtml += `<div class="answer-step">\\(= ${latexFraction(decimalFraction.simplified.n, decimalFraction.simplified.d)}\\)</div>`;
+                    }
+                    if (mixed.whole > 0 && mixed.remainder > 0) {
+                        bodyHtml += `<div class="answer-step">\\(= ${latexMixed(mixed.whole, mixed.remainder, mixed.denominator)}\\)</div>`;
+                    } else if (mixed.whole > 0 && mixed.remainder === 0) {
+                        bodyHtml += `<div class="answer-step">\\(= ${mixed.whole}\\)</div>`;
+                    } else if (
+                        decimalFraction.rawNumerator === decimalFraction.simplified.n &&
+                        decimalFraction.rawDenominator === decimalFraction.simplified.d
+                    ) {
+                        bodyHtml += `<div class="answer-step">\\(\\text{Already in simplest form}\\)</div>`;
+                    }
+                    if (
+                        mixed.whole === 0 &&
+                        decimalFraction.rawNumerator !== decimalFraction.simplified.n &&
+                        decimalFraction.rawDenominator !== decimalFraction.simplified.d
+                    ) {
+                        // Proper fractions do not need an extra mixed-number line.
                     }
                 }
                 bodyHtml += `</div>`;
