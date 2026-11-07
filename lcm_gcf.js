@@ -49,7 +49,7 @@ function renderFactorTree(tree, complete) {
     }
 
     const root = position(tree, 0);
-    // Use the same coordinate scale for short and long trees so prime roots stay legible.
+    // Use the same coordinate scale for short and long trees so their values stay legible.
     const width = Math.max(196, (leafCount - 1) * 48 + 52);
     const height = maxDepth * 58 + 52;
     const offset = (width - ((leafCount - 1) * 48 + 52)) / 2;
@@ -144,13 +144,19 @@ function generateProblems() {
     const count = Number(document.getElementById('num-questions').value);
     const type = document.getElementById('question-type').value;
     const guides = document.getElementById('show-tree-guides').checked;
+    const compositeTrees = [];
+    for (let number = 4; number <= maxNumber; number++) {
+        const tree = buildFactorTree(number);
+        if (tree.children.length > 0) compositeTrees.push(tree);
+    }
 
     currentProblems = Array.from({ length: count }, () => {
-        const left = randInt(2, maxNumber);
-        // Sample without retries; equal pairs are needed only when the range is just {2}.
-        let right = maxNumber === 2 ? 2 : randInt(2, maxNumber - 1);
-        if (maxNumber > 2 && right >= left) right++;
-        const trees = [buildFactorTree(left), buildFactorTree(right)];
+        const leftIndex = randInt(0, compositeTrees.length - 1);
+        // Sample distinct composites without retries whenever two are available.
+        let rightIndex = compositeTrees.length === 1 ? 0 : randInt(0, compositeTrees.length - 2);
+        if (compositeTrees.length > 1 && rightIndex >= leftIndex) rightIndex++;
+        const trees = [compositeTrees[leftIndex], compositeTrees[rightIndex]];
+        const [left, right] = trees.map(tree => tree.value);
         const problem = { trees, type };
         problem.questionHtml = `<strong>Find the ${problemLabel(type)} of ${left} and ${right}.</strong>
             ${renderTreePair(problem, false, guides)}
