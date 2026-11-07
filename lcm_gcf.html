@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCM and GCF Practice</title>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <link rel="stylesheet" href="lcm_gcf.css">
+    <script src="practice_page_common.js" defer></script>
+    <script src="lcm_gcf.js" defer></script>
+</head>
+<body>
+    <main class="container">
+        <nav class="no-print">
+            <a href="index.html" class="btn-home">Home</a>
+        </nav>
+
+        <h1>LCM and GCF Practice</h1>
+        <p class="introduction">Use prime factorization trees to find the least common multiple (LCM) and greatest common factor (GCF).</p>
+
+        <details class="worked-example no-print" open>
+            <summary>Worked example: 12 and 18</summary>
+            <p>Split each number into two factors. Keep splitting composite numbers until every branch ends in a prime number. Use the circled factors in the equations below to build each final multiplication.</p>
+            <div id="worked-example"></div>
+        </details>
+
+        <form id="practice-form" class="form-container no-print">
+            <div class="form-group">
+                <label for="question-type">Find:</label>
+                <select id="question-type">
+                    <option value="both">LCM and GCF</option>
+                    <option value="lcm">LCM only</option>
+                    <option value="gcf">GCF only</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="max-number">Maximum number:</label>
+                <input type="number" id="max-number" min="2" max="100" value="50" required>
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions:</label>
+                <input type="number" id="num-questions" min="1" max="30" value="6" required>
+            </div>
+            <div class="form-group">
+                <label class="inline-choice" for="show-tree-guides">
+                    <input type="checkbox" id="show-tree-guides" checked>
+                    Include blank factor tree guides
+                </label>
+            </div>
+            <div class="button-row">
+                <button type="submit" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </form>
+
+        <p class="print-header">Name: ____________________ &nbsp; Date: ____________________</p>
+        <p id="worksheet-instructions">Complete each factor tree and write the prime factorization. Then find the LCM and GCF.</p>
+        <p id="worksheet-status" class="no-print" role="status" aria-live="polite"></p>
+        <div id="problem-grid"></div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,211 @@
+:root {
+    --primary: #0f766e;
+    --group-bg: #f0fdfa;
+}
+
+.introduction {
+    text-align: center;
+    line-height: 1.6;
+}
+
+.worked-example {
+    padding: 20px;
+    margin: 24px 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    line-height: 1.6;
+}
+
+summary {
+    color: var(--primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#problem-grid {
+    grid-template-columns: 1fr;
+}
+
+.problem-card,
+.answer-item {
+    background: white;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.tree-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+    margin: 12px 0;
+}
+
+.tree-panel {
+    min-width: 0;
+    text-align: center;
+}
+
+.factor-tree {
+    display: block;
+    width: 100%;
+    max-width: 330px;
+    margin: 0 auto;
+    overflow: visible;
+}
+
+.tree-branch {
+    stroke: #64748b;
+    stroke-width: 1.5;
+}
+
+.tree-node {
+    fill: white;
+    stroke: #64748b;
+    stroke-width: 1.5;
+}
+
+.prime-node {
+    stroke: #0f766e;
+    stroke-width: 2;
+}
+
+.worked-operation h2 {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.worked-operation + .worked-operation {
+    border-top: 1px solid var(--border);
+    margin-top: 24px;
+    padding-top: 12px;
+}
+
+.tree-value {
+    fill: #1f2937;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    text-anchor: middle;
+}
+
+.factorization {
+    margin: 8px 0;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.selected-factorization {
+    padding: 12px 8px;
+    background: var(--group-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.factor-value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8em;
+    height: 1.8em;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.selected-factor {
+    border: 3px solid var(--primary);
+    border-radius: 50%;
+    font-weight: 800;
+}
+
+.prime-powers {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.15em;
+}
+
+.factor-blank {
+    display: inline-block;
+    width: 65%;
+    border-bottom: 1px solid #64748b;
+}
+
+.solution-step {
+    margin: 10px 0 0;
+    line-height: 1.6;
+}
+
+.solution-result {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.1em;
+}
+
+.answer-lines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 36px;
+    margin: 20px 0 8px;
+    font-weight: 700;
+}
+
+.tree-workspace {
+    height: 150px;
+    border-bottom: 1px dashed var(--border);
+    margin-bottom: 12px;
+}
+
+.print-header {
+    display: none;
+}
+
+#worksheet-status {
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.answer-key-page .answer-item {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+}
+
+@media (max-width: 520px) {
+    .tree-pair {
+        grid-template-columns: 1fr;
+    }
+
+    .form-container {
+        padding: 16px;
+    }
+}
+
+@media print {
+    .print-header {
+        display: block;
+        margin: 20px 0;
+    }
+
+    .introduction {
+        display: none;
+    }
+
+    .tree-pair {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .factor-tree {
+        max-width: 260px;
+    }
+
+    .problem-card,
+    .answer-key-page .answer-item {
+        border-color: #64748b;
+    }
+}
