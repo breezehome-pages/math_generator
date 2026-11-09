@@ -94,7 +94,7 @@ function renderProblemGrid(problems) {
     typesetCurrentPage();
 }
 
-function openAnswerKeyWindow(title, bodyHtml, extraStyle = '') {
+function openAnswerKeyWindow(title, bodyHtml, extraStyle = '', useMathJax = true) {
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -121,6 +121,8 @@ ${bodyHtml}
     win.document.open();
     win.document.write(html);
     win.document.close();
+
+    if (!useMathJax) return;
 
     const config = win.document.createElement('script');
     config.textContent = `window.MathJax = { tex: { inlineMath: [['$','$'], ['\\\\(','\\\\)']] }, svg: { fontCache: 'global' } };`;

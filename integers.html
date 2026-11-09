@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 7 Integer Addition and Subtraction</title>
+    <link rel="stylesheet" href="practice_page_common.css">
+    <script src="practice_page_common.js" defer></script>
+    <script src="integers.js" defer></script>
+    <style>
+        :root {
+            --primary: #4338ca;
+            --group-bg: #eef2ff;
+        }
+
+        .worked-examples {
+            margin: 20px 0;
+            padding: 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+
+        .worked-examples summary { color: var(--primary); font-weight: 700; cursor: pointer; }
+        .worked-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .worked-grid section { padding: 12px; background: var(--group-bg); border-radius: 8px; }
+        .worked-grid h2 { font-size: 1rem; margin-top: 0; }
+        .integer-expression { font-size: 1.1rem; font-weight: 600; }
+        .answer-space { height: 1.5em; margin-top: 8px; border-bottom: 1px solid #64748b; }
+        .print-header { display: none; }
+
+        @media (max-width: 640px) {
+            .worked-grid { grid-template-columns: 1fr; }
+            .form-container { padding: 16px; }
+        }
+
+        @media print {
+            .print-header { display: block; }
+            #problem-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            .problem-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <nav class="no-print"><a href="index.html" class="btn-home">Home</a></nav>
+        <h1>Grade 7 Integer Addition and Subtraction</h1>
+
+        <details class="worked-examples no-print" open>
+            <summary>Worked examples on a number line</summary>
+            <p>Adding a positive integer moves right. Adding a negative integer moves left. To subtract an integer, add its opposite.</p>
+            <div class="worked-grid">
+                <section>
+                    <h2>Add a negative integer</h2>
+                    <p class="integer-expression">2 + (−5) = −3</p>
+                    <div id="addition-example-line"></div>
+                    <p>Start at 2. Adding −5 moves you 5 units left to −3.</p>
+                </section>
+                <section>
+                    <h2>Subtract a negative integer</h2>
+                    <p class="integer-expression">−3 − (−5) = −3 + 5 = 2</p>
+                    <div id="subtraction-example-line"></div>
+                    <p>Start at −3. The opposite of −5 is 5, so move 5 units right to 2.</p>
+                </section>
+            </div>
+        </details>
+
+        <form id="integer-practice-form" class="form-container no-print">
+            <div class="form-group">
+                <label for="operation">Operation</label>
+                <select id="operation">
+                    <option value="mixed">Addition and subtraction</option>
+                    <option value="addition">Addition only</option>
+                    <option value="subtraction">Subtraction only</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="question-format">Question format</label>
+                <select id="question-format">
+                    <option value="mixed">Mixed questions</option>
+                    <option value="equation">Equations only</option>
+                    <option value="context">Word problems only</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="max-magnitude">Largest operand (absolute value)</label>
+                <input type="number" id="max-magnitude" min="1" max="100" value="20" required>
+            </div>
+            <div class="form-group">
+                <label for="num-questions">Number of questions</label>
+                <input type="number" id="num-questions" min="1" max="30" value="12" required>
+            </div>
+            <div class="button-row">
+                <button type="submit" id="generate-btn">Generate</button>
+                <button type="button" id="answer-key-btn">Answer Key</button>
+                <button type="button" id="print-btn">Print</button>
+            </div>
+        </form>
+
+        <p class="print-header">Name ____________________ &nbsp; Date ____________________</p>
+        <p>Find each result. Use a number line or integer counters to show your thinking.</p>
+        <p id="worksheet-status" class="no-print" role="status"></p>
+        <div id="problem-grid"></div>
+    </main>
+</body>
+</html>
